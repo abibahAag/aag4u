@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Blog/BlogPage.dart';
 import 'package:flutter_aag4u/Menu_Permintaan_Survey/pages/simulasihargaPage.dart';
 import 'package:flutter_aag4u/Menu_Promo/MenuPromoPage.dart';
+import 'package:flutter_aag4u/pages/promoPage.dart';
+import 'package:flutter_aag4u/template/navbar.dart';
 import 'package:flutter_aag4u/widgets/BannerWidget.dart';
 import 'package:flutter_aag4u/widgets/BlogWidget.dart';
 import 'package:flutter_aag4u/widgets/PekerjaanWidget.dart';
@@ -71,7 +73,7 @@ class _berandaPage extends State<berandaPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      // appBar: Navbar(),
+      appBar: Navbar(),
       // backgroundColor: Color(0xFF233d63),
       // backgroundColor: Colors.white,
 
@@ -511,7 +513,7 @@ class _berandaPage extends State<berandaPage> {
                                                     context,
                                                     MaterialPageRoute(
                                                         builder: (context) =>
-                                                            MenuPromoPage()),
+                                                            promoPage()),
                                                   );
                                                 },
                                                 child: Column(

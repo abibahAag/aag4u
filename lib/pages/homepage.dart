@@ -1,16 +1,15 @@
 // import 'dart:ffi';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_aag4u/Menu_Promo/MenuPromoWidget.dart';
 import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
 import 'package:flutter_aag4u/pages/berandaPage.dart';
-// import 'package:flutter_aag4u/pages/blogPage.dart';
 import 'package:flutter_aag4u/pages/chatPage.dart';
 import 'package:flutter_aag4u/pages/profilePage.dart';
+import 'package:flutter_aag4u/pages/promoPage.dart';
 import 'package:flutter_aag4u/pages/surveyPage.dart';
 import 'package:flutter_aag4u/template/navbar.dart';
-// import 'package:flutter_aag4u/controllers/homeControllers.dart';
-// import 'package:flutter_aag4u/widgets/BennerWidget.dart';
-// import 'package:flutter_aag4u/widgets/HomeBottomNavBar.dart';
+
 
 class homePage extends StatefulWidget {
   const homePage({super.key});
@@ -54,28 +53,24 @@ class _homePage extends State<homePage> {
           icon: InkWell(
               child: Icon(
             Icons.home,
-            // color: index_color == 0 ? Colors.red : Colors.white,
           ))),
       BottomNavigationBarItem(
           label: "Survey",
           icon: InkWell(
               child: Icon(
             Icons.assignment,
-            // color: index_color == 1 ? Colors.red : Colors.white,
           ))),
       BottomNavigationBarItem(
           label: "Promo",
           icon: InkWell(
               child: Icon(
             Icons.local_offer,
-            // color: index_color == 2 ? Colors.red : Colors.white,
           ))),
       BottomNavigationBarItem(
           label: "Chat",
           icon: InkWell(
               child: Icon(
             Icons.chat,
-            // color: index_color == 3 ? Colors.red : Colors.white,
           ))),
 
       ///BOTTOM PROFILE
@@ -104,7 +99,7 @@ class _homePage extends State<homePage> {
     );
 
     return Scaffold(
-      appBar: Navbar(),
+      // appBar: Navbar(),
       body: Center(
         child: _listPage[_selectedTabIndex],
       ),

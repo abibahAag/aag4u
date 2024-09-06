@@ -3,6 +3,13 @@ template warna AAG4U
 link logo aag
 https://aag.co.id/storage/app/media/logo/new_logo.png
 
+//cara push ke github
+git add .
+git commit -m "descripsi"
+git push origin main
+git push origin main --force ( kalua sudah terlalu banyak commit)
+
+
 warna biru
 
 #233d63

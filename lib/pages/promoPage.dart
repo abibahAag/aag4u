@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_aag4u/template/navbar.dart';
 import 'package:http/http.dart' as http;
 import 'package:shimmer/shimmer.dart';
 
@@ -55,7 +56,7 @@ class _promoPageState extends State<promoPage> {
     double screenWidth = MediaQuery.of(context).size.width * 0.9;
 
     return Scaffold(
-      // appBar: Navbar(),
+      appBar: Navbar(),
       body: SafeArea(
         child: SingleChildScrollView(
           scrollDirection: Axis.vertical,
