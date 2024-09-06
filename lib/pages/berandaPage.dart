@@ -9,6 +9,7 @@ import 'package:flutter_aag4u/Menu_Permintaan_Survey/pages/simulasihargaPage.dar
 import 'package:flutter_aag4u/Menu_Promo/MenuPromoPage.dart';
 import 'package:flutter_aag4u/widgets/BannerWidget.dart';
 import 'package:flutter_aag4u/widgets/BlogWidget.dart';
+import 'package:flutter_aag4u/widgets/PekerjaanWidget.dart';
 import 'package:flutter_aag4u/widgets/TestimoniWidget.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 // import 'package:flutter_aag4u/widgets/HomeBottomNavBar.dart';
@@ -338,41 +339,62 @@ class _berandaPage extends State<berandaPage> {
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           10)),
-                                              child: GestureDetector(
-                                                onTap: () {
-                                                  showDialog(
-                                                    context: context,
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return AlertDialog(
-                                                        title: Text("Info"),
-                                                        content:
-                                                            Text("Coming soon"),
-                                                        actions: [
-                                                          TextButton(
-                                                            child: Text("OK"),
-                                                            onPressed: () {
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop();
-                                                            },
-                                                          ),
-                                                        ],
+                                              child:
+                                                  InkWell(
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                PekerjaanWidget()),
                                                       );
                                                     },
-                                                  );
-                                                },
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Container(
-                                                        child: Image.asset(
-                                                            "images/icons/survey.png")),
-                                                    // const SizedBox(height: 5,),
-                                                  ],
-                                                ),
-                                              ),
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.center,
+                                                      children: [
+                                                        Container(
+                                                            child: Image.asset(
+                                                                "images/icons/survey.png")),
+                                                        // const SizedBox(height: 5,),
+                                                      ],
+                                                    ),
+                                                  ),
+                                              //     GestureDetector(
+                                              //   onTap: () {
+                                              //     showDialog(
+                                              //       context: context,
+                                              //       builder:
+                                              //           (BuildContext context) {
+                                              //         return AlertDialog(
+                                              //           title: Text("Info"),
+                                              //           content:
+                                              //               Text("Coming soon"),
+                                              //           actions: [
+                                              //             TextButton(
+                                              //               child: Text("OK"),
+                                              //               onPressed: () {
+                                              //                 Navigator.of(
+                                              //                         context)
+                                              //                     .pop();
+                                              //               },
+                                              //             ),
+                                              //           ],
+                                              //         );
+                                              //       },
+                                              //     );
+                                              //   },
+                                              //   child: Column(
+                                              //     mainAxisAlignment:
+                                              //         MainAxisAlignment.center,
+                                              //     children: [
+                                              //       Container(
+                                              //           child: Image.asset(
+                                              //               "images/icons/survey.png")),
+                                              //       // const SizedBox(height: 5,),
+                                              //     ],
+                                              //   ),
+                                              // ),
                                             ),
                                           ],
                                         ),
