@@ -24,10 +24,10 @@ class _homePage extends State<homePage> {
   int _selectedTabIndex = 0;
   // String notificationMsg = "waiting for notifications";
 
-@override 
-  void _onNavBarTapped(int index){
+  @override
+  void _onNavBarTapped(int index) {
     setState(() {
-        _selectedTabIndex = index;
+      _selectedTabIndex = index;
     });
     // super.initState();
     // FirebaseMessaging.onMessage.listen((event){
@@ -35,97 +35,82 @@ class _homePage extends State<homePage> {
     // });
   }
 
-      @override
-      Widget build(BuildContext context) {
-        final _listPage = <Widget>[
-        // const Text("Beranda"),
-        berandaPage(),
-        // const Text("survey"),
-        SurveyPage(),
-        // const Text("promo"),
-        promoPage(),
-        // const Text("chat"),
-        ChatPage(),
-        // const Text("profile"),
-        // ProfilePage(),
-        ];
+  @override
+  Widget build(BuildContext context) {
+    final _listPage = <Widget>[
+      // const Text("Beranda"),
+      berandaPage(),
+      // const Text("survey"),
+      SurveyPage(),
+      // const Text("promo"),
+      promoPage(),
+      // const Text("chat"),
+      ChatPage(),
+      // const Text("profile"),
+      ProfilePage(),
+    ];
 
-        final _bottonNavBarItems = <BottomNavigationBarItem>[
-        const BottomNavigationBarItem(
-                    label: "Home",
-                    icon: InkWell(
-                        
-                        child: Icon(
-                          Icons.home,
-                          // color: index_color == 0 ? Colors.red : Colors.white,
-                        ))),
-                BottomNavigationBarItem(
-                    label: "Survey",
-                    icon: InkWell(
-                        
-                        child: Icon(
-                          Icons.assignment,
-                          // color: index_color == 1 ? Colors.red : Colors.white,
-                        ))),
-                BottomNavigationBarItem(
-                    label: "Promo",
-                    icon: InkWell(
-                        
-                        child: Icon(
-                          Icons.local_offer,
-                          // color: index_color == 2 ? Colors.red : Colors.white,
-                        ))),
-                BottomNavigationBarItem(
-                    label: "Chat",
-                    icon: InkWell(
-                        
-                        child: Icon(
-                          Icons.chat,
-                          // color: index_color == 3 ? Colors.red : Colors.white,
-                        ))),
-                  ///BOTTOM PROFILE
-                // BottomNavigationBarItem(
-                //     label: "Profile",
-                //     icon: InkWell(
-                //         // onTap: () {
-                //         //   setState(() {
-                //         //     index_color = 4;
-                //         //    _navigateWithoutTransition(ProfilePage());
-                //         //   });
-                //         // },
-                //         child: Icon(
-                //           Icons.person,
-                //           // color: index_color == 4 ? Colors.red : Colors.white,
-                //         )
-                //     )
-                //   ),
-          ];
-          final _bottomNavBar = BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Color.fromARGB(255, 255, 255, 255),
-            items: _bottonNavBarItems,
-            currentIndex: _selectedTabIndex,
-            unselectedItemColor: Colors.grey ,
-            selectedItemColor: const Color(0xFF233d63),
-            onTap: _onNavBarTapped,
-            );
+    final _bottonNavBarItems = <BottomNavigationBarItem>[
+      const BottomNavigationBarItem(
+          label: "Home",
+          icon: InkWell(
+              child: Icon(
+            Icons.home,
+            // color: index_color == 0 ? Colors.red : Colors.white,
+          ))),
+      BottomNavigationBarItem(
+          label: "Survey",
+          icon: InkWell(
+              child: Icon(
+            Icons.assignment,
+            // color: index_color == 1 ? Colors.red : Colors.white,
+          ))),
+      BottomNavigationBarItem(
+          label: "Promo",
+          icon: InkWell(
+              child: Icon(
+            Icons.local_offer,
+            // color: index_color == 2 ? Colors.red : Colors.white,
+          ))),
+      BottomNavigationBarItem(
+          label: "Chat",
+          icon: InkWell(
+              child: Icon(
+            Icons.chat,
+            // color: index_color == 3 ? Colors.red : Colors.white,
+          ))),
 
-   
-      return Scaffold(
-        appBar: Navbar(),
+      ///BOTTOM PROFILE
+      BottomNavigationBarItem(
+          label: "Profile",
+          icon: InkWell(
+              // onTap: () {
+              //   setState(() {
+              //     index_color = 4;
+              //    _navigateWithoutTransition(ProfilePage());
+              //   });
+              // },
+              child: Icon(
+            Icons.person,
+            // color: index_color == 4 ? Colors.red : Colors.white,
+          ))),
+    ];
+    final _bottomNavBar = BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: Color.fromARGB(255, 255, 255, 255),
+      items: _bottonNavBarItems,
+      currentIndex: _selectedTabIndex,
+      unselectedItemColor: Colors.grey,
+      selectedItemColor: const Color(0xFF233d63),
+      onTap: _onNavBarTapped,
+    );
 
-        body: Center(
-          child: _listPage[_selectedTabIndex],
-        ),
-
-        bottomNavigationBar: _bottomNavBar,
-      );
-      
-         
+    return Scaffold(
+      appBar: Navbar(),
+      body: Center(
+        child: _listPage[_selectedTabIndex],
+      ),
+      bottomNavigationBar: _bottomNavBar,
+    );
   }
 }
-
-
-
-
-
