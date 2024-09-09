@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
-import 'package:flutter_aag4u/template/navbar.dart';
 
 class MenuPromoPage extends StatefulWidget {
   const MenuPromoPage({super.key});
@@ -10,61 +9,66 @@ class MenuPromoPage extends StatefulWidget {
 }
 
 class _MenuPromoPageState extends State<MenuPromoPage> {
+  List<String> items = List.generate(10, (index) => "Item ${index + 1}");
+
+// Fungsi untuk merefresh data
+  Future<void> _refreshData() async {
+    // Simulasi delay untuk meniru proses refresh
+    await Future.delayed(Duration(seconds: 2));
+
+    // Setelah proses refresh, perbarui data
+    setState(() {
+      items = List.generate(10, (index) => "Refreshed Item ${index + 1}");
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width * 0.9;
 
     return Scaffold(
-        // appBar: AppBar(automaticallyImplyLeading: true,
-        appBar: Navbar(),
+      appBar: AppBar(
+        automaticallyImplyLeading: true,
+        // appBar: Navbar(),
 
-        // actions: <Widget>[
-        //   Container(
-        //     // color: Colors.amber,
-        //     width: screenWidth,
-        //     height: 300,
-
-        //     child: Column(
-        //       children: [
-        //         Container(
-        //           child: Row(
-        //             mainAxisAlignment: MainAxisAlignment.end,
-        //             children: [
-        //               Column(
-        //                 children: [
-        //                   Container(
-        //                     child: Padding(
-        //                       padding: const EdgeInsets.only(right: 10),
-        //                       child: Image.asset(
-        //                         "images/icons/aagu.png",
-        //                         height: 50,
-        //                         width: 100,
-        //                       ),
-        //                     ),
-        //                   ),
-        //                   // Text(
-        //                   //   "data",
-        //                   //   style: TextStyle(color: Colors.black, fontSize: 5),
-        //                   // )
-        //                 ],
-        //               ),
-        //             ],
-        //           ),
-        //         ),
-        //       ],
-        //     ),
-        //   ),
-        // ]
-        // );
-        body: SingleChildScrollView(
+        title: Container(
+          // color: Colors.amber,
+          width: 250,
+          // height: 300,
           child: Column(
-            // mainAxisAlignment: MainAxisAlignment.center,
-            children: [promoPage()],
+            children: [
+              Container(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Column(
+                      children: [
+                        Container(
+                          child: Image.asset(
+                            "images/icons/aagu.png",
+                            height: 100,
+                            width: 100,
+                          ),
+                        ),
+                        // Text(
+                        //   "data",
+                        //   style: TextStyle(color: Colors.black, fontSize: 5),
+                        // )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        )
-
-        // bottomNavigationBar: HomeBottomNavBar(),
-        );
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [promoPage()],
+        ),
+      ),
+    );
   }
 }
 

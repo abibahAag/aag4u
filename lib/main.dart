@@ -3,21 +3,19 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_aag4u/Menu_Blog/BlogPage.dart';
+import 'package:flutter_aag4u/Menu_Permintaan_Survey/widget/SimulasiHargaWidget.dart';
+import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
 import 'package:flutter_aag4u/api/firebase_api.dart';
 import 'package:flutter_aag4u/controller/notification_controller.dart';
 import 'package:flutter_aag4u/controller/pushnotificationController.dart';
-import 'package:flutter_aag4u/Menu_Blog/BlogPage.dart';
 import 'package:flutter_aag4u/pages/SplashScreenPage.dart';
 import 'package:flutter_aag4u/pages/berandaPage.dart';
 import 'package:flutter_aag4u/pages/chatPage.dart';
 import 'package:flutter_aag4u/pages/homepage.dart';
-import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
-import 'package:flutter_aag4u/Menu_Permintaan_Survey/pages/simulasihargaPage.dart';
 import 'package:flutter_aag4u/pages/surveyPage.dart';
-import 'package:flutter_aag4u/Menu_Permintaan_Survey/Models/Cabang_Provider.dart';
 import 'package:flutter_aag4u/services/local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 
 import 'firebase_options.dart';
 
@@ -39,36 +37,36 @@ Future<void> _backgroundMessageHandler(RemoteMessage message) async {
   LocalNotificationsService.showNotificationOnForeground(message);
 }
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-    await Hive.initFlutter(); // Inisialisasi Hive dengan Hive Flutter
+  await Hive.initFlutter(); // Inisialisasi Hive dengan Hive Flutter
 
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   FirebaseApi firebaseApi = FirebaseApi();
   await FirebaseApi().initNotifications();
-    String? token = await FirebaseMessaging.instance.getToken();
-      print('token $token');
-      // FirebaseMessaging.onBackgroundMessage(_bg_notification);
-      pushnotificationController.init();
-      pushnotificationController.localNotiInit();
+  String? token = await FirebaseMessaging.instance.getToken();
+  print('token $token');
+  // FirebaseMessaging.onBackgroundMessage(_bg_notification);
+  pushnotificationController.init();
+  pushnotificationController.localNotiInit();
   await NotificationController.initializeLocalNotifications();
 
   FirebaseMessaging.onBackgroundMessage(_backgroundMessageHandler);
   LocalNotificationsService.initilize();
 
+  final message = await FirebaseMessaging.instance.getInitialMessage();
 
-      final message = await FirebaseMessaging.instance.getInitialMessage();
+  if (message != null) {
+    Future.delayed(Duration(seconds: 5), () {
+      nevegatorkey.currentState!.pushNamed("/message", arguments: message);
+    });
+  }
 
-      if (message != null) {
-        Future.delayed(Duration(seconds: 5), () {
-          nevegatorkey.currentState!.pushNamed("/message", arguments: message);
-        });
-      }
- 
 //   await Firebase.initializeApp();
 //   await NotificationController.initializeLocalNotifications();
 //   await NotificationController.initializeIsolateReceivePort();
@@ -105,12 +103,9 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-
 class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   @override
-
-
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
@@ -133,30 +128,23 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget build(BuildContext context) {
-    
-
-    
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
       ),
-
-        navigatorKey: nevegatorkey,
-        
+      navigatorKey: nevegatorkey,
       routes: {
         "/": (context) => SplashScreenPage(),
 
+        "homePage": (context) => homePage(),
         "BerandaPage": (context) => berandaPage(),
         "surveyPage": (context) => SurveyPage(),
         "promoPage": (context) => promoPage(),
         "profilePage": (context) => promoPage(),
-        "blogPage" : (context) => BlogPage(),
+        "blogPage": (context) => BlogPage(),
         "chatPage": (context) => ChatPage(),
-        // "simulasihargaPage": (context) => SimulasiHargaPage(),
       },
     );
   }
 }
-
-

@@ -45,7 +45,10 @@ dependencies:
   intl: ^0.19.0
   url_launcher: ^6.3.0
   flutter_html: ^3.0.0-beta.2
-  carousel_slider: ^5.0.0
+  carousel_slider:
+    ^5.0.0
+    # font_awesome_flutter: ^10.7.0
+
   # firebaseapis: ^0.2.0
   # firebase_performance: ^0.10.0+2
   # firebase_in_app_messaging: ^0.8.0+2
@@ -66,7 +69,10 @@ dependencies:
   hive_flutter: ^1.1.0
   internet_connection_checker: ^2.0.0
   google_sign_in: ^6.2.1
+  pull_to_refresh: ^2.0.0
   font_awesome_flutter: ^10.7.0
+
+  # firebase_auth: ^5.2.0
   # multiselect_dropdown_flutter: ^0.0.7
   # dropdown_multiselect: ^3.0.0
 # multi_select_flutter:
@@ -139,7 +145,13 @@ flutter:
     #   - images/a_dot_ham.jpeg
     - images/aag-load.gif
     - images/wait-load.gif
+    - images/google.png
+    - images/Login.png
+    - images/loginn.png
     - images/login2.png
+    - images/bg_login.jpg
+    - images/assets/No_internet.png
+    - images/assets/navbar.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

@@ -684,6 +684,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Permintaan_Survey/widget/SurveyResultWidget.dart';
 import 'package:http/http.dart' as http;
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 // Model class for Cabang
 class Hama {
@@ -765,6 +766,8 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
   // Set<int> _selectedItems = {}; // Use Set<int> to store IDs
 
   List<Map<String, dynamic>> _selectedItems = [];
+  bool isConnected = true; // Assume initially connected
+
   // List<dynamic> futureHarga = [];
 
   HamaItem? _selectedItem;
@@ -796,38 +799,140 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
     });
   }
 
-  Future<List<HamaItem>> fetchItems() async {
-    final response =
-        await http.get(Uri.parse('https://app.aag4u.co.id/api/getPest'));
+  // Future<List<HamaItem>> fetchItems() async {
+  //   final response =
+  //       await http.get(Uri.parse('https://app.aag4u.co.id/api/getPest'));
 
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      return data.map((item) => HamaItem.fromJson(item)).toList();
+  //   if (response.statusCode == 200) {
+  //     List<dynamic> data = json.decode(response.body);
+  //     return data.map((item) => HamaItem.fromJson(item)).toList();
+  //   } else {
+  //     throw Exception('Failed to load items');
+  //   }
+  // }
+
+  // Future<List<Provinsi>> fetchProvinsi() async {
+  //   final response = await http.get(Uri.parse(
+  //       'https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json'));
+  //   if (response.statusCode == 200) {
+  //     List jsonResponse = json.decode(response.body);
+  //     return jsonResponse.map((data) => Provinsi.fromJson(data)).toList();
+  //   } else {
+  //     throw Exception('Failed to load Provinsi');
+  //   }
+  // }
+
+  // Future<List<Kota>> fetchKota(int provinsiId) async {
+  //   final response = await http.get(Uri.parse(
+  //       'https://www.emsifa.com/api-wilayah-indonesia/api/regencies/$provinsiId.json'));
+  //   if (response.statusCode == 200) {
+  //     List jsonResponse = json.decode(response.body);
+  //     return jsonResponse.map((data) => Kota.fromJson(data)).toList();
+  //   } else {
+  //     throw Exception('Failed to load Segment');
+  //   }
+  // }
+
+  Future<List<HamaItem>> fetchItems() async {
+    isConnected = await InternetConnectionChecker().hasConnection;
+
+    if (isConnected) {
+      try {
+        final response =
+            await http.get(Uri.parse('https://app.aag4u.co.id/api/getPest'));
+
+        if (response.statusCode == 200) {
+          List jsonResponse = json.decode(response.body);
+          List<HamaItem> hama =
+              jsonResponse.map((data) => HamaItem.fromJson(data)).toList();
+          return hama;
+        } else {
+          throw Exception('Failed to load blog posts');
+        }
+      } catch (e) {
+        print('Error fetching data: $e');
+        return _getPlaceholderhama();
+      }
     } else {
-      throw Exception('Failed to load items');
+      return _getPlaceholderhama();
     }
+  }
+
+  List<HamaItem> _getPlaceholderhama() {
+    return [
+      HamaItem(
+        id: 0,
+        nama_hama: '',
+      ),
+    ];
   }
 
   Future<List<Provinsi>> fetchProvinsi() async {
-    final response = await http.get(Uri.parse(
-        'https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json'));
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      return jsonResponse.map((data) => Provinsi.fromJson(data)).toList();
+    isConnected = await InternetConnectionChecker().hasConnection;
+
+    if (isConnected) {
+      try {
+        final response = await http.get(Uri.parse(
+            'https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json'));
+
+        if (response.statusCode == 200) {
+          List jsonResponse = json.decode(response.body);
+          List<Provinsi> provinsi =
+              jsonResponse.map((data) => Provinsi.fromJson(data)).toList();
+          return provinsi;
+        } else {
+          throw Exception('Failed to load blog posts');
+        }
+      } catch (e) {
+        print('Error fetching data: $e');
+        return _getPlaceholderprovinsi();
+      }
     } else {
-      throw Exception('Failed to load Provinsi');
+      return _getPlaceholderprovinsi();
     }
   }
 
+  List<Provinsi> _getPlaceholderprovinsi() {
+    return [
+      Provinsi(
+        id: 0,
+        name: '',
+      ),
+    ];
+  }
+
   Future<List<Kota>> fetchKota(int provinsiId) async {
-    final response = await http.get(Uri.parse(
-        'https://www.emsifa.com/api-wilayah-indonesia/api/regencies/$provinsiId.json'));
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      return jsonResponse.map((data) => Kota.fromJson(data)).toList();
+    isConnected = await InternetConnectionChecker().hasConnection;
+
+    if (isConnected) {
+      try {
+        final response = await http.get(Uri.parse(
+            'https://www.emsifa.com/api-wilayah-indonesia/api/regencies/$provinsiId.json'));
+
+        if (response.statusCode == 200) {
+          List jsonResponse = json.decode(response.body);
+          List<Kota> kota =
+              jsonResponse.map((data) => Kota.fromJson(data)).toList();
+          return kota;
+        } else {
+          throw Exception('Failed to load blog posts');
+        }
+      } catch (e) {
+        print('Error fetching data: $e');
+        return _getPlaceholderkota();
+      }
     } else {
-      throw Exception('Failed to load Segment');
+      return _getPlaceholderkota();
     }
+  }
+
+  List<Kota> _getPlaceholderkota() {
+    return [
+      Kota(
+        id: 0,
+        name: '',
+      ),
+    ];
   }
 
   // void _submitForm() async {
@@ -1018,6 +1123,13 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
     }
   }
 
+  Future<void> _refreshData() async {
+    await fetchItems();
+    await fetchProvinsi();
+    // await fetchKota();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width * 0.9;
@@ -1069,636 +1181,712 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
               ),
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 0, right: 0),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Column(
+          RefreshIndicator(
+            onRefresh: _refreshData,
+            child: FutureBuilder<bool>(
+              future: InternetConnectionChecker().hasConnection,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                } else if (snapshot.hasData && snapshot.data == true) {
+                  // Internet is available
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 0, right: 0),
+                    child: Column(
                       children: [
-                        Container(
-                          width: screenWidth,
-                          height: 800,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                style: BorderStyle.solid, color: Colors.grey),
-                            borderRadius: BorderRadius.all(Radius.circular(24)),
-                          ),
-                          child: Form(
-                            key: _formKey,
-                            child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Column(
-                                    children: [
-                                      Row(
-                                        // mainAxisAlignment: MainAxisAlignment.center,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Column(
+                              children: [
+                                Container(
+                                  width: screenWidth,
+                                  height: 800,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        style: BorderStyle.solid,
+                                        color: Colors.grey),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(24)),
+                                  ),
+                                  child: Form(
+                                    key: _formKey,
+                                    child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          Container(
-                                            padding: EdgeInsets.only(top: 10),
-                                            child: Center(
-                                              child: Column(
-                                                // crossAxisAlignment:
-                                                //     CrossAxisAlignment.center,
+                                          Column(
+                                            children: [
+                                              Row(
+                                                // mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
-                                                  Row(
-                                                    children: [
-                                                      Container(
-                                                        // color: Colors.amber,
-                                                        width: inWidth,
-                                                        height: 750,
-                                                        alignment:
-                                                            Alignment.center,
-                                                        child: Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .only(
-                                                            top: 10,
-                                                            bottom: 10,
-                                                          ),
-                                                          child: Column(
+                                                  Container(
+                                                    padding: EdgeInsets.only(
+                                                        top: 10),
+                                                    child: Center(
+                                                      child: Column(
+                                                        // crossAxisAlignment:
+                                                        //     CrossAxisAlignment.center,
+                                                        children: [
+                                                          Row(
                                                             children: [
-                                                              Row(
-                                                                children: [
-                                                                  Column(
+                                                              Container(
+                                                                // color: Colors.amber,
+                                                                width: inWidth,
+                                                                height: 750,
+                                                                alignment:
+                                                                    Alignment
+                                                                        .center,
+                                                                child: Padding(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                          .only(
+                                                                    top: 10,
+                                                                    bottom: 10,
+                                                                  ),
+                                                                  child: Column(
                                                                     children: [
-                                                                      Container(
-                                                                        child:
-                                                                            Column(
-                                                                          crossAxisAlignment:
-                                                                              CrossAxisAlignment.start,
-                                                                          children: [
-                                                                            Row(
-                                                                              children: [
-                                                                                Column(
-                                                                                  children: <Widget>[
-                                                                                    Container(
-                                                                                      // color: Colors.blue,
-                                                                                      // width:,
+                                                                      Row(
+                                                                        children: [
+                                                                          Column(
+                                                                            children: [
+                                                                              Container(
+                                                                                child: Column(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                  children: [
+                                                                                    Row(
+                                                                                      children: [
+                                                                                        Column(
+                                                                                          children: <Widget>[
+                                                                                            Container(
+                                                                                              // color: Colors.blue,
+                                                                                              // width:,
 
-                                                                                      height: 30,
-                                                                                      child: Text(
-                                                                                        "HAMA",
-                                                                                        style: TextStyle(
-                                                                                          fontSize: 15,
-                                                                                          fontWeight: FontWeight.bold,
-                                                                                        ),
-                                                                                      ),
-                                                                                    )
-                                                                                  ],
-                                                                                )
-                                                                              ],
-                                                                            ),
-                                                                            Row(
-                                                                              children: [
-                                                                                Padding(
-                                                                                  padding: const EdgeInsets.all(0),
-                                                                                  child: Column(
-                                                                                    children: [
-                                                                                      FutureBuilder<List<HamaItem>>(
-                                                                                        future: _futureItems,
-                                                                                        builder: (context, snapshot) {
-                                                                                          if (snapshot.connectionState == ConnectionState.waiting) {
-                                                                                            return Center(child: CircularProgressIndicator());
-                                                                                          } else if (snapshot.hasError) {
-                                                                                            return Center(child: Text('Error: ${snapshot.error}'));
-                                                                                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                                                                            return Center(child: Text('No items found.'));
-                                                                                          } else {
-                                                                                            final items = snapshot.data!;
-
-                                                                                            return Container(
-                                                                                              width: inWidth,
-                                                                                              height: 50,
-                                                                                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                                                              decoration: BoxDecoration(
-                                                                                                borderRadius: BorderRadius.circular(8.0),
-                                                                                                border: Border.all(color: Colors.grey),
+                                                                                              height: 30,
+                                                                                              child: Text(
+                                                                                                "HAMA",
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 15,
+                                                                                                  fontWeight: FontWeight.bold,
+                                                                                                ),
                                                                                               ),
-                                                                                              child: GestureDetector(
-                                                                                                onTap: _showSelectHamaDialog,
-                                                                                                child: AbsorbPointer(
-                                                                                                  child: DropdownButtonFormField<String>(
-                                                                                                    value: _selectedText,
-                                                                                                    decoration: InputDecoration(
-                                                                                                      border: InputBorder.none, // Removes the underline
-                                                                                                    ),
-                                                                                                    items: [_selectedText].map(
-                                                                                                      (text) {
-                                                                                                        return DropdownMenuItem<String>(
-                                                                                                          value: text,
-                                                                                                          child: Container(
-                                                                                                            width: inWidthhama,
-                                                                                                            child: Text(
-                                                                                                              text ?? 'Pilih Hama',
-                                                                                                              // maxLines: 5,
-                                                                                                              overflow: TextOverflow.ellipsis,
-                                                                                                              // softWrap: true,
+                                                                                            )
+                                                                                          ],
+                                                                                        )
+                                                                                      ],
+                                                                                    ),
+                                                                                    Row(
+                                                                                      children: [
+                                                                                        Padding(
+                                                                                          padding: const EdgeInsets.all(0),
+                                                                                          child: Column(
+                                                                                            children: [
+                                                                                              RefreshIndicator(
+                                                                                                onRefresh: _refreshData,
+                                                                                                child: FutureBuilder<List<HamaItem>>(
+                                                                                                  future: _futureItems,
+                                                                                                  builder: (context, snapshot) {
+                                                                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                                                                      return Center(child: CircularProgressIndicator());
+                                                                                                    } else if (snapshot.hasError) {
+                                                                                                      return Center(child: Text('Error: ${snapshot.error}'));
+                                                                                                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                                                                                      return Center(child: Text('No items found.'));
+                                                                                                    } else {
+                                                                                                      final items = snapshot.data!;
+
+                                                                                                      return Container(
+                                                                                                        width: inWidth,
+                                                                                                        height: 50,
+                                                                                                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                                                                                        decoration: BoxDecoration(
+                                                                                                          borderRadius: BorderRadius.circular(8.0),
+                                                                                                          border: Border.all(color: Colors.grey),
+                                                                                                        ),
+                                                                                                        child: GestureDetector(
+                                                                                                          onTap: _showSelectHamaDialog,
+                                                                                                          child: AbsorbPointer(
+                                                                                                            child: DropdownButtonFormField<String>(
+                                                                                                              value: _selectedText,
+                                                                                                              decoration: InputDecoration(
+                                                                                                                border: InputBorder.none, // Removes the underline
+                                                                                                              ),
+                                                                                                              items: [_selectedText].map(
+                                                                                                                (text) {
+                                                                                                                  return DropdownMenuItem<String>(
+                                                                                                                    value: text,
+                                                                                                                    child: Container(
+                                                                                                                      width: inWidthhama,
+                                                                                                                      child: Text(
+                                                                                                                        text ?? 'Pilih Hama',
+                                                                                                                        // maxLines: 5,
+                                                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                                                        // softWrap: true,
+                                                                                                                      ),
+                                                                                                                    ),
+                                                                                                                  );
+                                                                                                                },
+                                                                                                              ).toList(),
+                                                                                                              onChanged: (_) {},
                                                                                                             ),
                                                                                                           ),
-                                                                                                        );
-                                                                                                      },
-                                                                                                    ).toList(),
-                                                                                                    onChanged: (_) {},
-                                                                                                  ),
-                                                                                                ),
-                                                                                              ),
-                                                                                            );
-                                                                                          }
-                                                                                        },
-                                                                                      ),
-                                                                                    ],
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              SizedBox(
-                                                                  height: 20),
-                                                              Row(
-                                                                children: [
-                                                                  Column(
-                                                                    children: [
-                                                                      Container(
-                                                                        child:
-                                                                            Column(
-                                                                          crossAxisAlignment:
-                                                                              CrossAxisAlignment.start,
-                                                                          children: [
-                                                                            Row(
-                                                                              children: [
-                                                                                Column(
-                                                                                  children: <Widget>[
-                                                                                    Container(
-                                                                                      // color: Colors.blue,
-                                                                                      // width:,
-
-                                                                                      height: 30,
-                                                                                      child: Text(
-                                                                                        "PROVINSI",
-                                                                                        style: TextStyle(
-                                                                                          fontSize: 15,
-                                                                                          fontWeight: FontWeight.bold,
-                                                                                        ),
-                                                                                      ),
-                                                                                    )
-                                                                                  ],
-                                                                                )
-                                                                              ],
-                                                                            ),
-                                                                            Row(
-                                                                              children: [
-                                                                                Padding(
-                                                                                  padding: const EdgeInsets.all(.0),
-                                                                                  child: Column(
-                                                                                    children: [
-                                                                                      
-                                                                                      FutureBuilder<List<Provinsi>>(
-                                                                                        future: futureProvinsi,
-                                                                                        builder: (context, snapshot) {
-                                                                                          if (snapshot.connectionState == ConnectionState.waiting) {
-                                                                                            return CircularProgressIndicator();
-                                                                                          } else if (snapshot.hasError) {
-                                                                                            return Text('Error: ${snapshot.error}');
-                                                                                          } else if (snapshot.hasData) {
-                                                                                            if (snapshot.data!.isEmpty) {
-                                                                                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                                                                                showDialog(
-                                                                                                  context: context,
-                                                                                                  builder: (BuildContext context) {
-                                                                                                    return AlertDialog(
-                                                                                                      title: Text('Peringatan'),
-                                                                                                      content: Text('Data harus diisi'),
-                                                                                                      actions: <Widget>[
-                                                                                                        TextButton(
-                                                                                                          onPressed: () {
-                                                                                                            Navigator.of(context).pop();
-                                                                                                          },
-                                                                                                          child: Text('OK'),
                                                                                                         ),
-                                                                                                      ],
-                                                                                                    );
-                                                                                                  },
-                                                                                                );
-                                                                                              });
-                                                                                              return Container(); // Return an empty container or another widget
-                                                                                            }
-
-                                                                                            return Container(
-                                                                                              width: inWidth,
-                                                                                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                                                              decoration: BoxDecoration(
-                                                                                                borderRadius: BorderRadius.circular(8.0),
-                                                                                                border: Border.all(color: Colors.grey),
-                                                                                              ),
-                                                                                              child: DropdownButton<Provinsi>(
-                                                                                                hint: Text('Pilih Provinsi'),
-                                                                                                value: selectedProvinsi,
-                                                                                                onChanged: (Provinsi? newValue) {
-                                                                                                  setState(() {
-                                                                                                    selectedProvinsi = newValue;
-                                                                                                    selectedKota = null; // Reset the Kota selection
-                                                                                                    if (newValue != null) {
-                                                                                                      futureKota = fetchKota(newValue.id);
+                                                                                                      );
                                                                                                     }
-                                                                                                  });
-                                                                                                },
-                                                                                                items: snapshot.data!.map((Provinsi provinsi) {
-                                                                                                  return DropdownMenuItem<Provinsi>(
-                                                                                                    value: provinsi,
-                                                                                                    child: Text(
-                                                                                                      provinsi.name,
-                                                                                                      style: TextStyle(
-                                                                                                        fontSize: 12,
-                                                                                                        fontWeight: FontWeight.bold,
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                  );
-                                                                                                }).toList(),
-                                                                                              ),
-                                                                                            );
-                                                                                          } else {
-                                                                                            return Text('No data');
-                                                                                          }
-                                                                                        },
-                                                                                      ),
-
-                                                                                      
-                                                                                    ],
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              SizedBox(
-                                                                  height: 20),
-                                                              Row(
-                                                                children: [
-                                                                  Column(
-                                                                    children: [
-                                                                      Container(
-                                                                        child:
-                                                                            Column(
-                                                                          crossAxisAlignment:
-                                                                              CrossAxisAlignment.start,
-                                                                          children: [
-                                                                            Row(
-                                                                              children: [
-                                                                                Column(
-                                                                                  children: <Widget>[
-                                                                                    Container(
-                                                                                      // color: Colors.blue,
-                                                                                      // width:,
-
-                                                                                      height: 30,
-                                                                                      child: Text(
-                                                                                        "KOTA",
-                                                                                        style: TextStyle(
-                                                                                          fontSize: 15,
-                                                                                          fontWeight: FontWeight.bold,
-                                                                                        ),
-                                                                                      ),
-                                                                                    )
-                                                                                  ],
-                                                                                )
-                                                                              ],
-                                                                            ),
-                                                                            Row(
-                                                                              children: [
-                                                                                Padding(
-                                                                                  padding: const EdgeInsets.all(.0),
-                                                                                  child: Column(
-                                                                                    children: [
-                                                                                      FutureBuilder<List<Kota>>(
-                                                                                        future: futureKota,
-                                                                                        builder: (context, snapshot) {
-                                                                                          // if (snapshot.connectionState == ConnectionState.waiting) {
-                                                                                          //   return CircularProgressIndicator();
-                                                                                          // } else
-                                                                                          if (snapshot.hasError) {
-                                                                                            return Text('Error: ${snapshot.error}');
-                                                                                          } else if (snapshot.hasData) {
-                                                                                            return Container(
-                                                                                              width: inWidth,
-                                                                                              height: 50,
-                                                                                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                                                                                              decoration: BoxDecoration(
-                                                                                                borderRadius: BorderRadius.circular(8.0),
-                                                                                                border: Border.all(color: Colors.grey),
-                                                                                              ),
-                                                                                              child: DropdownButton<Kota>(
-                                                                                                hint: Text(
-                                                                                                  'Pilih Kota',
-                                                                                                  maxLines: 2,
-                                                                                                  overflow: TextOverflow.ellipsis,
-                                                                                                  softWrap: true,
+                                                                                                  },
                                                                                                 ),
-                                                                                                value: selectedKota,
-                                                                                                onChanged: (Kota? newValue) {
-                                                                                                  setState(() {
-                                                                                                    selectedKota = newValue;
-                                                                                                  });
-                                                                                                },
-                                                                                                items: snapshot.data!.map((Kota kota) {
-                                                                                                  return DropdownMenuItem<Kota>(
-                                                                                                    value: kota,
-                                                                                                    child: ConstrainedBox(
-                                                                                                      constraints: BoxConstraints(maxWidth: 200), // Sesuaikan lebar maksimum sesuai kebutuhan
-                                                                                                      child: Text(
-                                                                                                        kota.name,
-                                                                                                        style: TextStyle(
-                                                                                                          fontSize: 12,
-                                                                                                          fontWeight: FontWeight.bold,
-                                                                                                        ),
-                                                                                                        maxLines: 3,
-                                                                                                        overflow: TextOverflow.visible,
-                                                                                                        softWrap: true,
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                  );
-                                                                                                }).toList(),
                                                                                               ),
-                                                                                            );
-                                                                                          } else {
-                                                                                            return Container(
-                                                                                              width: inWidth,
-                                                                                              height: 60,
-                                                                                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                                                              decoration: BoxDecoration(
-                                                                                                borderRadius: BorderRadius.circular(8.0),
-                                                                                                border: Border.all(color: Colors.grey),
-                                                                                              ),
-                                                                                              child: Column(
-                                                                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                                                                children: [
-                                                                                                  Row(
-                                                                                                    children: [
-                                                                                                      Text(
-                                                                                                        'Silakan pilih provinsi',
-                                                                                                        style: TextStyle(
-                                                                                                          color: Colors.grey[600],
-                                                                                                          fontSize: 12,
-                                                                                                          fontWeight: FontWeight.w500,
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                    ],
-                                                                                                  ),
-                                                                                                ],
-                                                                                              ),
-                                                                                            );
-                                                                                          }
-                                                                                        },
-                                                                                      ),
-                                                                                    ],
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              SizedBox(
-                                                                  height: 20),
-                                                              Row(
-                                                                children: [
-                                                                  Column(
-                                                                    children: [
-                                                                      Row(
-                                                                        children: [
-                                                                          Container(
-                                                                            child:
-                                                                                Column(
-                                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                                              children: [
-                                                                                Row(
-                                                                                  children: [
-                                                                                    Column(
-                                                                                      children: <Widget>[
-                                                                                        Container(
-                                                                                          // color: Colors.blue,
-                                                                                          // width:,
-
-                                                                                          height: 30,
-                                                                                          child: Text(
-                                                                                            "ALAMAT ",
-                                                                                            style: TextStyle(
-                                                                                              fontSize: 15,
-                                                                                              fontWeight: FontWeight.bold,
-                                                                                            ),
+                                                                                            ],
                                                                                           ),
-                                                                                        )
+                                                                                        ),
                                                                                       ],
-                                                                                    )
-                                                                                  ],
-                                                                                ),
-                                                                                Row(
-                                                                                  children: [
-                                                                                    Container(
-                                                                                      width: inputWidth,
-                                                                                      height: 90,
-                                                                                      decoration: BoxDecoration(
-                                                                                        border: Border.all(
-                                                                                          color: Colors.grey,
-                                                                                          width: 1,
-                                                                                          style: BorderStyle.solid,
-                                                                                        ),
-                                                                                        borderRadius: BorderRadius.circular(10),
-                                                                                      ),
-                                                                                      padding: EdgeInsets.only(left: 10, top: 10),
-                                                                                      child: TextFormField(
-                                                                                        controller: _alamatController,
-                                                                                        textAlignVertical: TextAlignVertical.center,
-                                                                                        // autofocus: true,
-                                                                                        enableInteractiveSelection: true,
-                                                                                        maxLines: 3,
-                                                                                        textAlign: TextAlign.start,
-                                                                                        decoration: const InputDecoration.collapsed(
-                                                                                          border: InputBorder.none,
-                                                                                          hintText: ('Info Alamat Lengkap  '),
-                                                                                        ),
-                                                                                        validator: (String? value) {
-                                                                                          if (value == null || value.isEmpty) {
-                                                                                            return ' Masukkan Detail Alamat';
-                                                                                          }
-                                                                                          return null;
-                                                                                        },
-                                                                                      ),
                                                                                     ),
                                                                                   ],
-                                                                                )
-                                                                              ],
-                                                                            ),
-                                                                          )
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
                                                                         ],
-                                                                      )
-                                                                    ],
-                                                                  )
-                                                                ],
-                                                              ),
-                                                              SizedBox(
-                                                                  height: 20),
-                                                              Row(
-                                                                children: [
-                                                                  Column(
-                                                                    children: [
+                                                                      ),
+                                                                      SizedBox(
+                                                                          height:
+                                                                              20),
                                                                       Row(
                                                                         children: [
-                                                                          Container(
-                                                                            child:
-                                                                                Column(
-                                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                                              children: [
-                                                                                Row(
-                                                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                                          Column(
+                                                                            children: [
+                                                                              Container(
+                                                                                child: Column(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                                                   children: [
-                                                                                    Column(
-                                                                                      children: <Widget>[
-                                                                                        Container(
-                                                                                          // color: Colors.blue,
-                                                                                          // width:,
+                                                                                    Row(
+                                                                                      children: [
+                                                                                        Column(
+                                                                                          children: <Widget>[
+                                                                                            Container(
+                                                                                              // color: Colors.blue,
+                                                                                              // width:,
 
-                                                                                          height: 30,
-                                                                                          child: Text(
-                                                                                            "WHATSAPP",
-                                                                                            style: TextStyle(
-                                                                                              fontSize: 15,
-                                                                                              fontWeight: FontWeight.bold,
-                                                                                            ),
-                                                                                          ),
+                                                                                              height: 30,
+                                                                                              child: Text(
+                                                                                                "PROVINSI",
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 15,
+                                                                                                  fontWeight: FontWeight.bold,
+                                                                                                ),
+                                                                                              ),
+                                                                                            )
+                                                                                          ],
                                                                                         )
                                                                                       ],
-                                                                                    )
+                                                                                    ),
+                                                                                    Row(
+                                                                                      children: [
+                                                                                        Padding(
+                                                                                          padding: const EdgeInsets.all(.0),
+                                                                                          child: Column(
+                                                                                            children: [
+                                                                                              RefreshIndicator(
+                                                                                                onRefresh: _refreshData,
+                                                                                                child: FutureBuilder<List<Provinsi>>(
+                                                                                                  future: futureProvinsi,
+                                                                                                  builder: (context, snapshot) {
+                                                                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                                                                      return CircularProgressIndicator();
+                                                                                                    } else if (snapshot.hasError) {
+                                                                                                      return Text('Error: ${snapshot.error}');
+                                                                                                    } else if (snapshot.hasData) {
+                                                                                                      if (snapshot.data!.isEmpty) {
+                                                                                                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                                                                          showDialog(
+                                                                                                            context: context,
+                                                                                                            builder: (BuildContext context) {
+                                                                                                              return AlertDialog(
+                                                                                                                title: Text('Peringatan'),
+                                                                                                                content: Text('Data harus diisi'),
+                                                                                                                actions: <Widget>[
+                                                                                                                  TextButton(
+                                                                                                                    onPressed: () {
+                                                                                                                      Navigator.of(context).pop();
+                                                                                                                    },
+                                                                                                                    child: Text('OK'),
+                                                                                                                  ),
+                                                                                                                ],
+                                                                                                              );
+                                                                                                            },
+                                                                                                          );
+                                                                                                        });
+                                                                                                        return Container(); // Return an empty container or another widget
+                                                                                                      }
+
+                                                                                                      return Container(
+                                                                                                        width: inWidth,
+                                                                                                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                                                                                        decoration: BoxDecoration(
+                                                                                                          borderRadius: BorderRadius.circular(8.0),
+                                                                                                          border: Border.all(color: Colors.grey),
+                                                                                                        ),
+                                                                                                        child: DropdownButton<Provinsi>(
+                                                                                                          hint: Text('Pilih Provinsi'),
+                                                                                                          value: selectedProvinsi,
+                                                                                                          onChanged: (Provinsi? newValue) {
+                                                                                                            setState(() {
+                                                                                                              selectedProvinsi = newValue;
+                                                                                                              selectedKota = null; // Reset the Kota selection
+                                                                                                              if (newValue != null) {
+                                                                                                                futureKota = fetchKota(newValue.id);
+                                                                                                              }
+                                                                                                            });
+                                                                                                          },
+                                                                                                          items: snapshot.data!.map((Provinsi provinsi) {
+                                                                                                            return DropdownMenuItem<Provinsi>(
+                                                                                                              value: provinsi,
+                                                                                                              child: Text(
+                                                                                                                provinsi.name,
+                                                                                                                style: TextStyle(
+                                                                                                                  fontSize: 12,
+                                                                                                                  fontWeight: FontWeight.bold,
+                                                                                                                ),
+                                                                                                              ),
+                                                                                                            );
+                                                                                                          }).toList(),
+                                                                                                        ),
+                                                                                                      );
+                                                                                                    } else {
+                                                                                                      return Text('No data');
+                                                                                                    }
+                                                                                                  },
+                                                                                                ),
+                                                                                              ),
+                                                                                            ],
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
                                                                                   ],
                                                                                 ),
-                                                                                Row(
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      SizedBox(
+                                                                          height:
+                                                                              20),
+                                                                      Row(
+                                                                        children: [
+                                                                          Column(
+                                                                            children: [
+                                                                              Container(
+                                                                                child: Column(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                                                   children: [
-                                                                                    Container(
-                                                                                      width: inputWidth,
-                                                                                      height: 50,
-                                                                                      decoration: BoxDecoration(
-                                                                                        border: Border.all(
-                                                                                          color: Colors.grey,
-                                                                                          width: 1,
-                                                                                          style: BorderStyle.solid,
+                                                                                    Row(
+                                                                                      children: [
+                                                                                        Column(
+                                                                                          children: <Widget>[
+                                                                                            Container(
+                                                                                              // color: Colors.blue,
+                                                                                              // width:,
+
+                                                                                              height: 30,
+                                                                                              child: Text(
+                                                                                                "KOTA",
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 15,
+                                                                                                  fontWeight: FontWeight.bold,
+                                                                                                ),
+                                                                                              ),
+                                                                                            )
+                                                                                          ],
+                                                                                        )
+                                                                                      ],
+                                                                                    ),
+                                                                                    Row(
+                                                                                      children: [
+                                                                                        Padding(
+                                                                                          padding: const EdgeInsets.all(.0),
+                                                                                          child: Column(
+                                                                                            children: [
+                                                                                              FutureBuilder<List<Kota>>(
+                                                                                                future: futureKota,
+                                                                                                builder: (context, snapshot) {
+                                                                                                  // if (snapshot.connectionState == ConnectionState.waiting) {
+                                                                                                  //   return CircularProgressIndicator();
+                                                                                                  // } else
+                                                                                                  if (snapshot.hasError) {
+                                                                                                    return Text('Error: ${snapshot.error}');
+                                                                                                  } else if (snapshot.hasData) {
+                                                                                                    return Container(
+                                                                                                      width: inWidth,
+                                                                                                      height: 50,
+                                                                                                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                                                                                                      decoration: BoxDecoration(
+                                                                                                        borderRadius: BorderRadius.circular(8.0),
+                                                                                                        border: Border.all(color: Colors.grey),
+                                                                                                      ),
+                                                                                                      child: DropdownButton<Kota>(
+                                                                                                        hint: Text(
+                                                                                                          'Pilih Kota',
+                                                                                                          maxLines: 2,
+                                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                                          softWrap: true,
+                                                                                                        ),
+                                                                                                        value: selectedKota,
+                                                                                                        onChanged: (Kota? newValue) {
+                                                                                                          setState(() {
+                                                                                                            selectedKota = newValue;
+                                                                                                          });
+                                                                                                        },
+                                                                                                        items: snapshot.data!.map((Kota kota) {
+                                                                                                          return DropdownMenuItem<Kota>(
+                                                                                                            value: kota,
+                                                                                                            child: ConstrainedBox(
+                                                                                                              constraints: BoxConstraints(maxWidth: 200), // Sesuaikan lebar maksimum sesuai kebutuhan
+                                                                                                              child: Text(
+                                                                                                                kota.name,
+                                                                                                                style: TextStyle(
+                                                                                                                  fontSize: 12,
+                                                                                                                  fontWeight: FontWeight.bold,
+                                                                                                                ),
+                                                                                                                maxLines: 3,
+                                                                                                                overflow: TextOverflow.visible,
+                                                                                                                softWrap: true,
+                                                                                                              ),
+                                                                                                            ),
+                                                                                                          );
+                                                                                                        }).toList(),
+                                                                                                      ),
+                                                                                                    );
+                                                                                                  } else {
+                                                                                                    return Container(
+                                                                                                      width: inWidth,
+                                                                                                      height: 60,
+                                                                                                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                                                                                      decoration: BoxDecoration(
+                                                                                                        borderRadius: BorderRadius.circular(8.0),
+                                                                                                        border: Border.all(color: Colors.grey),
+                                                                                                      ),
+                                                                                                      child: Column(
+                                                                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                                                                        children: [
+                                                                                                          Row(
+                                                                                                            children: [
+                                                                                                              Text(
+                                                                                                                'Silakan pilih provinsi',
+                                                                                                                style: TextStyle(
+                                                                                                                  color: Colors.grey[600],
+                                                                                                                  fontSize: 12,
+                                                                                                                  fontWeight: FontWeight.w500,
+                                                                                                                ),
+                                                                                                              ),
+                                                                                                            ],
+                                                                                                          ),
+                                                                                                        ],
+                                                                                                      ),
+                                                                                                    );
+                                                                                                  }
+                                                                                                },
+                                                                                              ),
+                                                                                            ],
+                                                                                          ),
                                                                                         ),
-                                                                                        borderRadius: BorderRadius.circular(10),
-                                                                                      ),
-                                                                                      padding: EdgeInsets.only(
-                                                                                        left: 10,
-                                                                                      ),
-                                                                                      child: TextFormField(
-                                                                                        controller: _waController,
-                                                                                        keyboardType: TextInputType.phone,
-                                                                                        decoration: const InputDecoration(
-                                                                                          border: InputBorder.none,
-                                                                                          hintText: 'Nomor Whatsapp',
-                                                                                        ),
-                                                                                        validator: (String? value) {
-                                                                                          if (value == null || value.isEmpty) {
-                                                                                            return ' Maukkan Nomor Whatsapp';
-                                                                                          }
-                                                                                          return null;
-                                                                                        },
-                                                                                      ),
-                                                                                    )
+                                                                                      ],
+                                                                                    ),
                                                                                   ],
-                                                                                )
-                                                                              ],
-                                                                            ),
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      SizedBox(
+                                                                          height:
+                                                                              20),
+                                                                      Row(
+                                                                        children: [
+                                                                          Column(
+                                                                            children: [
+                                                                              Row(
+                                                                                children: [
+                                                                                  Container(
+                                                                                    child: Column(
+                                                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                      children: [
+                                                                                        Row(
+                                                                                          children: [
+                                                                                            Column(
+                                                                                              children: <Widget>[
+                                                                                                Container(
+                                                                                                  // color: Colors.blue,
+                                                                                                  // width:,
+
+                                                                                                  height: 30,
+                                                                                                  child: Text(
+                                                                                                    "ALAMAT ",
+                                                                                                    style: TextStyle(
+                                                                                                      fontSize: 15,
+                                                                                                      fontWeight: FontWeight.bold,
+                                                                                                    ),
+                                                                                                  ),
+                                                                                                )
+                                                                                              ],
+                                                                                            )
+                                                                                          ],
+                                                                                        ),
+                                                                                        Row(
+                                                                                          children: [
+                                                                                            Container(
+                                                                                              width: inputWidth,
+                                                                                              height: 90,
+                                                                                              decoration: BoxDecoration(
+                                                                                                border: Border.all(
+                                                                                                  color: Colors.grey,
+                                                                                                  width: 1,
+                                                                                                  style: BorderStyle.solid,
+                                                                                                ),
+                                                                                                borderRadius: BorderRadius.circular(10),
+                                                                                              ),
+                                                                                              padding: EdgeInsets.only(left: 10, top: 10),
+                                                                                              child: TextFormField(
+                                                                                                controller: _alamatController,
+                                                                                                textAlignVertical: TextAlignVertical.center,
+                                                                                                // autofocus: true,
+                                                                                                enableInteractiveSelection: true,
+                                                                                                maxLines: 3,
+                                                                                                textAlign: TextAlign.start,
+                                                                                                decoration: const InputDecoration.collapsed(
+                                                                                                  border: InputBorder.none,
+                                                                                                  hintText: ('Info Alamat Lengkap  '),
+                                                                                                ),
+                                                                                                validator: (String? value) {
+                                                                                                  if (value == null || value.isEmpty) {
+                                                                                                    return ' Masukkan Detail Alamat';
+                                                                                                  }
+                                                                                                  return null;
+                                                                                                },
+                                                                                              ),
+                                                                                            ),
+                                                                                          ],
+                                                                                        )
+                                                                                      ],
+                                                                                    ),
+                                                                                  )
+                                                                                ],
+                                                                              )
+                                                                            ],
                                                                           )
                                                                         ],
-                                                                      )
-                                                                    ],
-                                                                  )
-                                                                ],
-                                                              ),
-                                                              SizedBox(
-                                                                  height: 50),
-                                                              Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .end,
-                                                                children: [
-                                                                  Row(
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .end,
-                                                                    children: [
-                                                                      Container(
-                                                                        // width: 100,
-                                                                        // height: 50,
-                                                                        child:
-                                                                            Column(
-                                                                          crossAxisAlignment:
-                                                                              CrossAxisAlignment.end,
-                                                                          children: [
-                                                                            Row(
-                                                                              children: [
-                                                                                ElevatedButton(
-                                                                                  style: ButtonStyle(
-                                                                                    fixedSize: WidgetStatePropertyAll(Size(inputWidth, 30)),
-                                                                                    backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF233d63)),
-                                                                                  ),
-                                                                                  onPressed: _submitForm,
-                                                                                  child: Row(
-                                                                                    mainAxisAlignment: MainAxisAlignment.center,
-                                                                                    children: [
-                                                                                      Text(
-                                                                                        'Submit',
-                                                                                        style: TextStyle(fontSize: 17, color: Colors.white),
-                                                                                      ),
-                                                                                    ],
-                                                                                  ),
+                                                                      ),
+                                                                      SizedBox(
+                                                                          height:
+                                                                              20),
+                                                                      Row(
+                                                                        children: [
+                                                                          Column(
+                                                                            children: [
+                                                                              Row(
+                                                                                children: [
+                                                                                  Container(
+                                                                                    child: Column(
+                                                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                      children: [
+                                                                                        Row(
+                                                                                          mainAxisAlignment: MainAxisAlignment.start,
+                                                                                          children: [
+                                                                                            Column(
+                                                                                              children: <Widget>[
+                                                                                                Container(
+                                                                                                  // color: Colors.blue,
+                                                                                                  // width:,
+
+                                                                                                  height: 30,
+                                                                                                  child: Text(
+                                                                                                    "WHATSAPP",
+                                                                                                    style: TextStyle(
+                                                                                                      fontSize: 15,
+                                                                                                      fontWeight: FontWeight.bold,
+                                                                                                    ),
+                                                                                                  ),
+                                                                                                )
+                                                                                              ],
+                                                                                            )
+                                                                                          ],
+                                                                                        ),
+                                                                                        Row(
+                                                                                          children: [
+                                                                                            Container(
+                                                                                              width: inputWidth,
+                                                                                              height: 50,
+                                                                                              decoration: BoxDecoration(
+                                                                                                border: Border.all(
+                                                                                                  color: Colors.grey,
+                                                                                                  width: 1,
+                                                                                                  style: BorderStyle.solid,
+                                                                                                ),
+                                                                                                borderRadius: BorderRadius.circular(10),
+                                                                                              ),
+                                                                                              padding: EdgeInsets.only(
+                                                                                                left: 10,
+                                                                                              ),
+                                                                                              child: TextFormField(
+                                                                                                controller: _waController,
+                                                                                                keyboardType: TextInputType.phone,
+                                                                                                decoration: const InputDecoration(
+                                                                                                  border: InputBorder.none,
+                                                                                                  hintText: 'Nomor Whatsapp',
+                                                                                                ),
+                                                                                                validator: (String? value) {
+                                                                                                  if (value == null || value.isEmpty) {
+                                                                                                    return ' Maukkan Nomor Whatsapp';
+                                                                                                  }
+                                                                                                  return null;
+                                                                                                },
+                                                                                              ),
+                                                                                            )
+                                                                                          ],
+                                                                                        )
+                                                                                      ],
+                                                                                    ),
+                                                                                  )
+                                                                                ],
+                                                                              )
+                                                                            ],
+                                                                          )
+                                                                        ],
+                                                                      ),
+                                                                      SizedBox(
+                                                                          height:
+                                                                              50),
+                                                                      Column(
+                                                                        crossAxisAlignment:
+                                                                            CrossAxisAlignment.end,
+                                                                        children: [
+                                                                          Row(
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.end,
+                                                                            children: [
+                                                                              Container(
+                                                                                // width: 100,
+                                                                                // height: 50,
+                                                                                child: Column(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                                                                  children: [
+                                                                                    Row(
+                                                                                      children: [
+                                                                                        ElevatedButton(
+                                                                                          style: ButtonStyle(
+                                                                                            fixedSize: WidgetStatePropertyAll(Size(inputWidth, 30)),
+                                                                                            backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF233d63)),
+                                                                                          ),
+                                                                                          onPressed: _submitForm,
+                                                                                          child: Row(
+                                                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                                                            children: [
+                                                                                              Text(
+                                                                                                'Submit',
+                                                                                                style: TextStyle(fontSize: 17, color: Colors.white),
+                                                                                              ),
+                                                                                            ],
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
+                                                                                  ],
                                                                                 ),
-                                                                              ],
-                                                                            ),
-                                                                          ],
-                                                                        ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        ],
                                                                       ),
                                                                     ],
                                                                   ),
-                                                                ],
+                                                                ),
                                                               ),
                                                             ],
                                                           ),
-                                                        ),
+                                                        ],
                                                       ),
-                                                    ],
+                                                    ),
                                                   ),
                                                 ],
                                               ),
-                                            ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                    ],
+                                        ]),
                                   ),
-                                ]),
-                          ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ],
+                  );
+                } else {
+                  // No internet connection
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 100),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'images/assets/No_internet.png',
+                            width: 200,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          ),
+                          SizedBox(height: 20),
+                          Text(
+                            'Please check your internet connection and try again.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 20),
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              // Re-check the internet connection and refresh the data
+                              bool connection =
+                                  await InternetConnectionChecker()
+                                      .hasConnection;
+                              if (connection) {
+                                setState(() {
+                                  isConnected = true;
+                                  _futureItems = fetchItems();
+                                  futureProvinsi = fetchProvinsi();
+                                });
+                              } else {
+                                setState(() {
+                                  isConnected = false;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          'No internet connection available')),
+                                );
+                              }
+                            },
+                            icon: Icon(Icons.refresh),
+                            label: Text('Refresh'),
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.blue, // Text color
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 10),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+              },
             ),
           ),
         ]));

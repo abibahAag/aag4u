@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shimmer/shimmer.dart';
 
 class Promo {
@@ -31,6 +32,9 @@ class promoPage extends StatefulWidget {
 
 class _promoPageState extends State<promoPage> {
   Future<List<Promo>>? futurePromo;
+  bool isConnected = true;
+
+  List<String> items = List.generate(10, (index) => "Item ${index + 1}");
 
   @override
   void initState() {
@@ -38,16 +42,54 @@ class _promoPageState extends State<promoPage> {
     futurePromo = fetchPromo();
   }
 
-  Future<List<Promo>> fetchPromo() async {
-    final response =
-        await http.get(Uri.parse('https://app.aag4u.co.id/api/getBanner'));
+  // Future<List<Promo>> fetchPromo() async {
+  //   final response =
+  //       await http.get(Uri.parse('https://app.aag4u.co.id/api/getBanner'));
 
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      return jsonResponse.map((data) => Promo.fromJson(data)).toList();
+  //   if (response.statusCode == 200) {
+  //     List jsonResponse = json.decode(response.body);
+  //     return jsonResponse.map((data) => Promo.fromJson(data)).toList();
+  //   } else {
+  //     throw Exception('Failed to load Promo posts');
+  //   }
+  // }
+
+  Future<List<Promo>> fetchPromo() async {
+    var isConnected = await InternetConnectionChecker().hasConnection;
+
+    if (isConnected) {
+      try {
+        final response = await http.get(
+          Uri.parse('https://app.aag4u.co.id/api/getBanner'),
+        );
+        if (response.statusCode == 200) {
+          List jsonResponse = json.decode(response.body);
+          List<Promo> promo =
+              jsonResponse.map((data) => Promo.fromJson(data)).toList();
+          return promo;
+        } else {
+          throw Exception('Failed to load blog posts');
+        }
+      } catch (e) {
+        print('Error fetching data: $e');
+        return _getPlaceholderPromo();
+      }
     } else {
-      throw Exception('Failed to load blog posts');
+      return _getPlaceholderPromo();
     }
+  }
+
+  List<Promo> _getPlaceholderPromo() {
+    return [
+      Promo(
+        gambar_banner: 'images/assets/No_internet.png',
+      ),
+    ];
+  }
+
+  Future<void> _refreshData() async {
+    await fetchPromo();
+    setState(() {});
   }
 
   @override
@@ -97,143 +139,130 @@ class _promoPageState extends State<promoPage> {
               ),
             ],
           ),
-          Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    // color: Colors.amber,
-                    width: screenWidth,
-                    height: 750,
-                    child: FutureBuilder<List<Promo>>(
-                      future: futurePromo,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Center(child: Text("${snapshot.error}"));
-                        } else if (snapshot.hasData) {
-                          List<Promo> posts = snapshot.data!;
-                          return ListView.builder(
-                            itemCount: posts.length,
-                            itemBuilder: (context, index) {
-                              return Card(
-                                margin: EdgeInsets.all(7.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Image.network(
-                                      posts[index].gambar_banner,
-                                      // width: double.infinity,
-                                      // height: 200,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        } else {
-                          return Center(child: Text("No data available"));
-                        }
-                      },
-                    ),
-
-                    //  FutureBuilder<List<Promo>>(
-                    //   future: futurePromo,
-                    //   builder: (context, snapshot) {
-                    //     if (snapshot.connectionState ==
-                    //         ConnectionState.waiting) {
-                    //       // return Center(child: CircularProgressIndicator());
-                    //       return buildShimmer();
-                    //     } else if (snapshot.hasError) {
-                    //       return Center(child: Text("${snapshot.error}"));
-                    //     } else if (snapshot.hasData) {
-                    //       List<Promo> posts = snapshot.data!;
-                    //       return Row(
-                    //         children: posts.map((Promo) {
-                    //           return Card(
-                    //             margin: EdgeInsets.all(0),
-                    //             child: Column(
-                    //               crossAxisAlignment: CrossAxisAlignment.start,
-                    //               children: [
-                    //                 Image.network(
-                    //                   Promo.gambar_banner.toString(),
-                    //                   width: screenWidth,
-                    //                   height: 100,
-                    //                   fit: BoxFit.cover,
-                    //                 ),
-                    //               ],
-                    //             ),
-                    //           );
-                    //         }).toList(),
-                    //       );
-                    //     } else {
-                    //       return Center(child: Text("No data available"));
-                    //     }
-                    //   },
-                    // ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          // Column(
+          //   children: [
+          //     Row(
+          //       mainAxisAlignment: MainAxisAlignment.center,
+          //       children: [
+          //         Container(
+          //           width: screenWidth,
+          //           height: 650,
+          //           child: RefreshIndicator(
+          //             onRefresh: _refreshData,
+          //             child: FutureBuilder<bool>(
+          //               future: InternetConnectionChecker().hasConnection,
+          //               builder: (context, snapshot) {
+          //                 if (snapshot.connectionState ==
+          //                     ConnectionState.waiting) {
+          //                   return Center(child: CircularProgressIndicator());
+          //                 } else if (snapshot.hasError) {
+          //                   return Center(
+          //                       child: Text("Error: ${snapshot.error}"));
+          //                 } else if (snapshot.hasData &&
+          //                     snapshot.data == true) {
+          //                   // Internet is available
+          //                   return FutureBuilder<List<Promo>>(
+          //                     future: futurePromo,
+          //                     builder: (context, snapshot) {
+          //                       if (snapshot.connectionState ==
+          //                           ConnectionState.waiting) {
+          //                         return Center(
+          //                             child: CircularProgressIndicator());
+          //                       } else if (snapshot.hasError) {
+          //                         return Center(
+          //                             child: Text("Error: ${snapshot.error}"));
+          //                       } else if (snapshot.hasData) {
+          //                         List<Promo> posts = snapshot.data!;
+          //                         return ListView.builder(
+          //                           itemCount: posts.length,
+          //                           itemBuilder: (context, index) {
+          //                             return Card(
+          //                               margin: EdgeInsets.all(7.0),
+          //                               child: Column(
+          //                                 crossAxisAlignment:
+          //                                     CrossAxisAlignment.start,
+          //                                 children: [
+          //                                   Image.network(
+          //                                     posts[index].gambar_banner,
+          //                                     fit: BoxFit.cover,
+          //                                   ),
+          //                                 ],
+          //                               ),
+          //                             );
+          //                           },
+          //                         );
+          //                       } else {
+          //                         return Center(
+          //                             child: Text("No data available"));
+          //                       }
+          //                     },
+          //                   );
+          //                 } else {
+          //                   // No internet connection
+          //                   return Center(
+          //                     child: Padding(
+          //                       padding: const EdgeInsets.only(top: 100),
+          //                       child: Column(
+          //                         // mainAxisAlignment: MainAxisAlignment.center,
+          //                         children: [
+          //                           Image.asset(
+          //                             'images/assets/No_internet.png',
+          //                             width: 200,
+          //                             height: 200,
+          //                             fit: BoxFit.cover,
+          //                           ),
+          //                           SizedBox(height: 20),
+          //                           Text(
+          //                               'Please check your internet connection and try again.'),
+          //                           SizedBox(height: 20),
+          //                           ElevatedButton.icon(
+          //                             onPressed: () async {
+          //                               // Re-check the internet connection and refresh the data
+          //                               bool connection =
+          //                                   await InternetConnectionChecker()
+          //                                       .hasConnection;
+          //                               if (connection) {
+          //                                 setState(() {
+          //                                   isConnected = true;
+          //                                   futurePromo = fetchPromo();
+          //                                 });
+          //                               } else {
+          //                                 setState(() {
+          //                                   isConnected = false;
+          //                                 });
+          //                                 ScaffoldMessenger.of(context)
+          //                                     .showSnackBar(
+          //                                   SnackBar(
+          //                                       content: Text(
+          //                                           'No internet connection available')),
+          //                                 );
+          //                               }
+          //                             },
+          //                             icon: Icon(Icons.refresh),
+          //                             label: Text('Refresh'),
+          //                             style: ElevatedButton.styleFrom(
+          //                               foregroundColor: Colors.white,
+          //                               backgroundColor:
+          //                                   Colors.blue, // Text color
+          //                               padding: EdgeInsets.symmetric(
+          //                                   horizontal: 20, vertical: 10),
+          //                             ),
+          //                           ),
+          //                         ],
+          //                       ),
+          //                     ),
+          //                   );
+          //                 }
+          //               },
+          //             ),
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ],
+          // ),
         ],
       ),
-
-      // Column(
-      //   mainAxisAlignment: MainAxisAlignment.center,
-      //   children: [
-      //     Row(
-      //       mainAxisAlignment: MainAxisAlignment.center,
-      //       children: [
-      //         Padding(
-      //           padding: EdgeInsets.all(0),
-      //           child: Container(
-      //               child: Column(
-      //             children: [
-      //               Row(
-      //                 children: [
-      //                   Text(
-      //                     "PROMO",
-      //                     style: TextStyle(
-      //                       fontSize: 25,
-
-      //                     ),
-      //                   )
-      //                     ],
-      //                   ),
-      //                   SizedBox(
-      //                     height: 10,
-      //                   ),
-      //                 Row(
-      //                 children: [
-      //                   Column(
-      //                     children: [
-      //                       Container(
-      //                         child: Text(
-      //                           "COMING SOON",
-      //                           style: TextStyle(
-      //                             fontSize: 35,
-      //                             fontWeight: FontWeight.bold,
-      //                           ),
-      //                         ),
-      //                       )
-      //                     ],
-      //                   )
-      //                 ],
-      //               )
-      //             ],
-      //           )),
-      //         ),
-      //       ],
-      //     )
-      //   ],
-      // ),
-
-      // bottomNavigationBar: HomeBottomNavBar(),
     );
   }
 

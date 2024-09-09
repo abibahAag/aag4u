@@ -56,7 +56,8 @@ class _BlogPageState extends State<BlogPage> {
     double screenWidth = MediaQuery.of(context).size.width * 0.9;
 
     return Scaffold(
-      appBar: AppBar(automaticallyImplyLeading: true, actions: <Widget>[
+      appBar: AppBar(automaticallyImplyLeading: true, 
+      actions: <Widget>[
         Container(
           // color: Colors.amber,
           width: screenWidth,
@@ -92,7 +93,8 @@ class _BlogPageState extends State<BlogPage> {
             ],
           ),
         ),
-      ]),
+      ]
+      ),
       body: SafeArea(
           child: SingleChildScrollView(
         child: Column(

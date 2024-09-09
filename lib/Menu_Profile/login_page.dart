@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_aag4u/pages/berandaPage.dart';
 import 'package:flutter_aag4u/pages/homepage.dart';
-import 'package:flutter_aag4u/pages/profilePage.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class loginpage extends StatefulWidget {
@@ -82,11 +79,9 @@ class _loginpageState extends State<loginpage> {
   }
 
   Widget appBar() {
-    return
-      Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        
         Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[

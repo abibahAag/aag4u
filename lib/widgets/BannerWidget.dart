@@ -341,6 +341,8 @@ class _BannerWidgetState extends State<BannerWidget> {
       }
 
       return banners;
+
+      
     } else {
       // Jika ada koneksi internet, ambil data dari API dan simpan ke Hive
       final response =
