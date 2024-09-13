@@ -22,19 +22,24 @@ rgb(38 57 77)
 // Api AAG4U 
 
 /untuk get data all pekerjaan = Get
+
 https://app.aag4u.co.id/api/getWork
 
 /untuk get data all luasan area = Get
+
 https://app.aag4u.co.id/api/getArea
 
 
 // untuk get data all cabang = Get
+
 https://app.aag4u.co.id/api/getBranch
 
 // untuk get data all segment = Get
+
 www.app.aag4u.co.id/api/getSegment
 
 // untuk get data all Blog = Get
+
 https://app.aag4u.co.id/api/getPost  -> all
 image/blog
 
@@ -48,30 +53,58 @@ https://app.aag4u.co.id/api/getPostBy/id  -> fir
 
 
 // untuk get data all Testimoni = Get
+
 https://app.aag4u.co.id/api/getTesti
 image/testi
 
 
 
 // untuk get data all hama = Get
+
 https://app.aag4u.co.id/api/getPest
 
 // untuk get data all Survey = Get
+
 https://app.aag4u.co.id/api/getSurvey
+
+
+// untuk post data all register google = post
+
+https://app.aag4u.co.id/api/addUserGoogle
+
+1. name
+2. email
+3. photo
+
+
+
+// untuk post data all register user = post
+
+https://app.aag4u.co.id/api/addUser
+
+- field form
+1. name
+2. email
+3. password
+
 
 
 
 // untuk get data all splash = Get
+
 https://app.aag4u.co.id/api/getSplash
 image/splash
 
 // untuk get data all Banner = Get
+
 https://app.aag4u.co.id/api/getBanner
 https://app.aag4u.co.id/public/image/banner/bannerslide.png
 
 
 // untuk post data hasil = Post
+
 https://app.aag4u.co.id/api/getResult
+
 - field form 
   1. kerjaan  = 3
   2. luasan   = 2
@@ -79,14 +112,18 @@ https://app.aag4u.co.id/api/getResult
   4. segmen   = 2
 
 // Untuk Post Data Munculkan Luasan = Post
+
 https://app.aag4u.co.id/api/getAreaBy
+
 - field form 
   1. kerjaan
   2. cabang
   3. segmen
 
 // Untuk Post Data Survey  = Post
+
 https://app.aag4u.co.id/api/survey
+
 - field form 
   1. Provinsi (string)
   2. kota (string)
@@ -95,14 +132,13 @@ https://app.aag4u.co.id/api/survey
   5. hama (id multiple ) 
 
 {
-  "provinsi": "jawa barat",
-  "kota": "kota bekasi",
-  "alamat": "kota bekasi",
-  "wa": "08763638836",
-  "hama": [1,2,3]
-}
-
-
+  {
+    "provinsi": "jawa barat",
+    "kota": "kota bekasi",
+    "alamat": "kota bekasi",
+    "wa": "08763638836",
+    "hama": [1,2,3]
+  }
 }
 
 
@@ -117,7 +153,7 @@ https://www.sahretech.com/2022/05/membuat-slider-atau-carousel-dengan.html
 
 
 
-nemu
+menu
 1. simulasi Harga
     - luas
     - treatment
