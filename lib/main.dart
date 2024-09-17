@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Blog/BlogPage.dart';
-import 'package:flutter_aag4u/Menu_Permintaan_Survey/widget/SimulasiHargaWidget.dart';
+import 'package:flutter_aag4u/Menu_Promo/MenuPromoWidget.dart';
 import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
 import 'package:flutter_aag4u/api/firebase_api.dart';
 import 'package:flutter_aag4u/controller/notification_controller.dart';
@@ -13,6 +13,7 @@ import 'package:flutter_aag4u/pages/SplashScreenPage.dart';
 import 'package:flutter_aag4u/pages/berandaPage.dart';
 import 'package:flutter_aag4u/pages/chatPage.dart';
 import 'package:flutter_aag4u/pages/homepage.dart';
+import 'package:flutter_aag4u/pages/promoPage.dart';
 import 'package:flutter_aag4u/pages/surveyPage.dart';
 import 'package:flutter_aag4u/services/local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -136,12 +137,11 @@ class _MyAppState extends State<MyApp> {
       navigatorKey: nevegatorkey,
       routes: {
         "/": (context) => SplashScreenPage(),
-
         "homePage": (context) => homePage(),
         "BerandaPage": (context) => berandaPage(),
         "surveyPage": (context) => SurveyPage(),
         "promoPage": (context) => promoPage(),
-        "profilePage": (context) => promoPage(),
+        // "profilePage": (context) => promoPage(),
         "blogPage": (context) => BlogPage(),
         "chatPage": (context) => ChatPage(),
       },

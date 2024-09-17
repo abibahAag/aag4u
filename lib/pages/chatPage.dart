@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter_aag4u/template/navbar.dart';
+import 'package:flutter_aag4u/template/navbar.dart';
 // import 'package:flutter_aag4u/widgets/HomeBottomNavBar.dart';
 // import 'package:flutter_aag4u/widgets/HomeBottomNavBar.dart';
 
@@ -9,7 +9,7 @@ class ChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: Navbar(),
+      appBar: Navbar(),
       body: SafeArea(
           child: 
             Column(

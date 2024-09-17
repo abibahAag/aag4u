@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
+import 'package:flutter_aag4u/Menu_Promo/MenuPromoWidget.dart';
+import 'package:flutter_aag4u/pages/promoPage.dart';
 
 class MenuPromoPage extends StatefulWidget {
   const MenuPromoPage({super.key});
