@@ -77,8 +77,14 @@ https://app.aag4u.co.id/api/addUserGoogle
 3. photo
 
 
+// untuk post data login user = post
+https://app.aag4u.co.id/api/logon
+
+
 
 // untuk post data all register user = post
+https://app.aag4u.co.id/api/getUser
+
 
 https://app.aag4u.co.id/api/addUser
 

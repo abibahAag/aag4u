@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/template/navbar.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shimmer/shimmer.dart';
@@ -55,37 +56,98 @@ class _promoPageState extends State<promoPage> {
   //   }
   // }
 
-  Future<List<Promo>> fetchPromo() async {
-    var isConnected = await InternetConnectionChecker().hasConnection;
+  // Future<List<Promo>> fetchPromo() async {
+  //   var isConnected = await InternetConnectionChecker().hasConnection;
 
-    if (isConnected) {
-      try {
-        final response = await http.get(
-          Uri.parse('https://app.aag4u.co.id/api/getBanner'),
-        );
-        if (response.statusCode == 200) {
-          List jsonResponse = json.decode(response.body);
-          List<Promo> promo =
-              jsonResponse.map((data) => Promo.fromJson(data)).toList();
-          return promo;
-        } else {
-          throw Exception('Failed to load blog posts');
+  //   if (isConnected) {
+  //     try {
+  //       final response = await http.get(
+  //         Uri.parse('https://app.aag4u.co.id/api/getBanner'),
+  //       );
+  //       if (response.statusCode == 200) {
+  //         List jsonResponse = json.decode(response.body);
+  //         List<Promo> promo =
+  //             jsonResponse.map((data) => Promo.fromJson(data)).toList();
+  //         return promo;
+  //       } else {
+  //         throw Exception('Failed to load blog posts');
+  //       }
+  //     } catch (e) {
+  //       print('Error fetching data: $e');
+  //       return _getPlaceholderPromo();
+  //     }
+  //   } else {
+  //     return _getPlaceholderPromo();
+  //   }
+  // }
+
+  // List<Promo> _getPlaceholderPromo() {
+  //   return [
+  //     Promo(
+  //       gambar_banner: 'images/assets/No_internet.png',
+  //     ),
+  //   ];
+  // }
+
+
+
+  Future<List<Promo>> fetchPromo() async {
+    var box = await Hive.openBox('promoBox');
+
+    // Cek apakah data sudah ada di cache Hive
+    if (box.isNotEmpty) {
+      List<String> imageNames = box.keys.cast<String>().toList();
+      List<Promo> Promos = [];
+
+      // Ambil data dari Hive
+      for (var imageName in imageNames) {
+        String? base64Image = box.get(imageName);
+        if (base64Image != null) {
+          Promos.add(Promo(
+              gambar_banner:
+                  'https://app.aag4u.co.id/public/image/banner/$imageName'));
         }
-      } catch (e) {
-        print('Error fetching data: $e');
-        return _getPlaceholderPromo();
       }
+
+      // Kembalikan data dari cache Hive
+      print('Data loaded from cache');
+      return Promos;
+    }
+
+    // Jika cache kosong, ambil data dari API dan simpan ke cache
+    print('Fetching data from API');
+    final response =
+        await http.get(Uri.parse('https://app.aag4u.co.id/api/getBanner'));
+
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      List<Promo> Promos =
+          jsonResponse.map((data) => Promo.fromJson(data)).toList();
+
+      // Simpan data di cache Hive
+      for (var Promo in Promos) {
+        String imageName = Promo.gambar_banner.split('/').last;
+        String? base64Image = await fetchImageAsBase64(Promo.gambar_banner);
+        if (base64Image != null) {
+          await box.put(imageName, base64Image);
+        }
+      }
+
+      // Kembalikan data yang baru diambil dari API
+      return Promos;
     } else {
-      return _getPlaceholderPromo();
+      throw Exception('Failed to load Promo posts');
     }
   }
 
-  List<Promo> _getPlaceholderPromo() {
-    return [
-      Promo(
-        gambar_banner: 'images/assets/No_internet.png',
-      ),
-    ];
+// Fungsi untuk mengambil gambar sebagai base64
+  Future<String?> fetchImageAsBase64(String imageUrl) async {
+    final response = await http.get(Uri.parse(imageUrl));
+    if (response.statusCode == 200) {
+      // Mengonversi byte dari response body ke base64
+      return base64Encode(response.bodyBytes);
+    }
+    return null;
   }
 
   Future<void> _refreshData() async {
@@ -110,7 +172,7 @@ class _promoPageState extends State<promoPage> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12.0, vertical: 15.0),
+                        horizontal: 0, vertical: 10.0),
                     child: Column(
                       children: [
                         Container(
@@ -121,10 +183,10 @@ class _promoPageState extends State<promoPage> {
                             borderRadius: BorderRadius.circular(24),
                           ),
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            // mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                // mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     "Promo",

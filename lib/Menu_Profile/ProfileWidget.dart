@@ -33,7 +33,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-          builder: (context) => homePage()), // Navigate to LoginPage
+          builder: (context) => homePage(isRegistered: false, isLoggedIn: false)), // Navigate to LoginPage
     );
   }
 

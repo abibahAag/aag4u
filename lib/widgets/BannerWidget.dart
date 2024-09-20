@@ -79,7 +79,6 @@
 //     }
 //   }
 
-
 // Future<String?> fetchImageAsBase64(String imageUrl) async {
 //     try {
 //       final response = await http.get(Uri.parse(imageUrl));
@@ -96,8 +95,6 @@
 //   @override
 //   Widget build(BuildContext context) {
 //         double screenWidth = MediaQuery.of(context).size.width ;
-
-        
 
 //     return SingleChildScrollView(
 //       // body: SingleChildScrollView(
@@ -284,11 +281,11 @@
 // }
 
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
 import 'package:shimmer/shimmer.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 class Banner {
   final String gambar_banner;
@@ -322,65 +319,123 @@ class _BannerWidgetState extends State<BannerWidget> {
 
   Future<List<Banner>> fetchBanner() async {
     var box = await Hive.openBox('bannerBox');
-    bool hasConnection = await InternetConnectionChecker().hasConnection;
 
-    if (!hasConnection) {
-      // Jika tidak ada koneksi internet, ambil data dari Hive
+    // Cek apakah data sudah ada di cache Hive
+    if (box.isNotEmpty) {
       List<String> imageNames = box.keys.cast<String>().toList();
       List<Banner> banners = [];
 
+      // Ambil data dari Hive
       for (var imageName in imageNames) {
         String? base64Image = box.get(imageName);
         if (base64Image != null) {
-          // Anda bisa menambahkan logika untuk membangun objek Banner dari base64Image
           banners.add(Banner(
               gambar_banner:
                   'https://app.aag4u.co.id/public/image/banner/$imageName'));
-          print('tidak ada internet');
         }
       }
 
+      // Kembalikan data dari cache Hive
+      print('Data loaded from cache');
       return banners;
+    }
 
-      
-    } else {
-      // Jika ada koneksi internet, ambil data dari API dan simpan ke Hive
-      final response =
-          await http.get(Uri.parse('https://app.aag4u.co.id/api/getBanner'));
+    // Jika cache kosong, ambil data dari API dan simpan ke cache
+    print('Fetching data from API');
+    final response =
+        await http.get(Uri.parse('https://app.aag4u.co.id/api/getBanner'));
 
-      if (response.statusCode == 200) {
-        List jsonResponse = json.decode(response.body);
-        List<Banner> banners =
-            jsonResponse.map((data) => Banner.fromJson(data)).toList();
-      print("ada internet");
-        // Menyimpan setiap gambar ke Hive
-        for (var banner in banners) {
-          String imageName = banner.gambar_banner.split('/').last;
-          String? base64Image = await fetchImageAsBase64(banner.gambar_banner);
-          if (base64Image != null) {
-            await box.put(imageName, base64Image);
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      List<Banner> banners =
+          jsonResponse.map((data) => Banner.fromJson(data)).toList();
 
-          }
+      // Simpan data di cache Hive
+      for (var banner in banners) {
+        String imageName = banner.gambar_banner.split('/').last;
+        String? base64Image = await fetchImageAsBase64(banner.gambar_banner);
+        if (base64Image != null) {
+          await box.put(imageName, base64Image);
         }
-
-        return banners;
-      } else {
-        throw Exception('Failed to load Banner posts');
       }
+
+      // Kembalikan data yang baru diambil dari API
+      return banners;
+    } else {
+      throw Exception('Failed to load Banner posts');
     }
   }
 
+// Fungsi untuk mengambil gambar sebagai base64
   Future<String?> fetchImageAsBase64(String imageUrl) async {
-    try {
-      final response = await http.get(Uri.parse(imageUrl));
-      if (response.statusCode == 200) {
-        return base64Encode(response.bodyBytes);
-      }
-    } catch (e) {
-      print("Error fetching image: $e");
+    final response = await http.get(Uri.parse(imageUrl));
+    if (response.statusCode == 200) {
+      // Mengonversi byte dari response body ke base64
+      return base64Encode(response.bodyBytes);
     }
     return null;
   }
+
+  // Future<List<Banner>> fetchBanner() async {
+  //   var box = await Hive.openBox('bannerBox');
+  //   bool hasConnection = await InternetConnectionChecker().hasConnection;
+
+  //   if (!hasConnection) {
+  //     // Jika tidak ada koneksi internet, ambil data dari Hive
+  //     List<String> imageNames = box.keys.cast<String>().toList();
+  //     List<Banner> banners = [];
+
+  //     for (var imageName in imageNames) {
+  //       String? base64Image = box.get(imageName);
+  //       if (base64Image != null) {
+  //         // Anda bisa menambahkan logika untuk membangun objek Banner dari base64Image
+  //         banners.add(Banner(
+  //             gambar_banner:
+  //                 'https://app.aag4u.co.id/public/image/banner/$imageName'));
+  //         print('tidak ada internet');
+  //       }
+  //     }
+
+  //     return banners;
+
+  //   } else {
+  //     // Jika ada koneksi internet, ambil data dari API dan simpan ke Hive
+  //     final response =
+  //         await http.get(Uri.parse('https://app.aag4u.co.id/api/getBanner'));
+
+  //     if (response.statusCode == 200) {
+  //       List jsonResponse = json.decode(response.body);
+  //       List<Banner> banners =
+  //           jsonResponse.map((data) => Banner.fromJson(data)).toList();
+  //     print("ada internet");
+  //       // Menyimpan setiap gambar ke Hive
+  //       for (var banner in banners) {
+  //         String imageName = banner.gambar_banner.split('/').last;
+  //         String? base64Image = await fetchImageAsBase64(banner.gambar_banner);
+  //         if (base64Image != null) {
+  //           await box.put(imageName, base64Image);
+
+  //         }
+  //       }
+
+  //       return banners;
+  //     } else {
+  //       throw Exception('Failed to load Banner posts');
+  //     }
+  //   }
+  // }
+
+  // Future<String?> fetchImageAsBase64(String imageUrl) async {
+  //   try {
+  //     final response = await http.get(Uri.parse(imageUrl));
+  //     if (response.statusCode == 200) {
+  //       return base64Encode(response.bodyBytes);
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching image: $e");
+  //   }
+  //   return null;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -487,4 +542,3 @@ class _BannerWidgetState extends State<BannerWidget> {
     );
   }
 }
-

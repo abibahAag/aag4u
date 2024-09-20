@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_aag4u/Menu_Profile/ProfileWidget.dart';
+import 'package:flutter_aag4u/pages/homepage.dart';
+import 'package:flutter_aag4u/pages/profilePage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 
 GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -21,12 +23,93 @@ class DaftarProfilePage extends StatefulWidget {
 
 class _DaftarProfilePageState extends State<DaftarProfilePage> {
   bool _isObscured = true;
+  Box? isiBox;
 
   final _formKey = GlobalKey<FormState>();
+  GoogleSignInAccount? _currentUser;
+  Box loginBox = Hive.box('loginBox');
+  String? _name, _email, _photoUrl; // Simpan informasi login sebagai variabel
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLoginStatus();
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+      setState(() {
+        _currentUser = account;
+        if (_currentUser != null) {
+          _saveLoginStatus(true); // Simpan data login ke Hive
+        }
+      });
+    });
+    _googleSignIn.signInSilently();
+  }
+
+  // Menyimpan status login google ke Hive
+  Future<void> _saveLoginStatus(bool status) async {
+    // await loginBox.put('isLoggedIn', status);
+    // if (status && _currentUser != null) {
+    await http.post(
+      Uri.parse('https://app.aag4u.co.id/api/addUserGoogle'),
+      body: jsonEncode({
+        'name': _currentUser!.displayName,
+        'email': _currentUser!.email,
+        'photo': _currentUser!.photoUrl,
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    await loginBox.put('name', _currentUser!.displayName);
+    await loginBox.put('email', _currentUser!.email);
+    await loginBox.put('photo', _currentUser!.photoUrl);
+
+// Setelah proses login berhasil, pindahkan ke halaman HomePage
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => homePage(isLoggedIn: true, isRegistered: false),
+      ),
+    );
+   
+                setState(() {
+                  _name = isiBox!.get('name');
+                  _email = isiBox!.get('email');
+                  _photoUrl = isiBox!.get('photo');
+                });
+      
+  }
+
+
+// Memuat status login dari Hive
+  Future<void> _loadLoginStatus() async {
+    // bool isLoggedIn = loginBox.get('isLoggedIn', defaultValue: false);
+    isiBox = await Hive.openBox('loginBox');
+    // Cek apakah box tidak kosong, jika ada isi, refresh halaman
+
+    // if (isLoggedIn) {
+    setState(() {
+      _name = isiBox!.get('name');
+      _email = isiBox!.get('email');
+      _photoUrl = isiBox!.get('photo');
+    });
+    // }
+  }
+  
+  // Fungsi untuk logout dan hapus data di Hive
+  Future<void> _handleSignOut() async {
+    await _googleSignIn.signOut();
+    await loginBox.clear(); // Hapus semua data login di Hive
+    setState(() {
+      _currentUser = null;
+      _name = null;
+      _email = null;
+      _photoUrl = null;
+    });
+  }
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
@@ -85,36 +168,22 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body) as Map<String, dynamic>;
         final surveyId = responseData['idi'];
-        print(' bvb b vvgcgcgcg: ${response.statusCode}');
+        // print(' bvb b vvgcgcgcg: ${response.statusCode}');
 
-        // Navigasi ke halaman lain setelah berhasil submit
+        
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProfileWidget(),
+            builder: (context) =>
+                homePage(isRegistered: true, isLoggedIn: false), // Set true jika sudah register
           ),
         );
       } else {
-        print('Failed to submit data: ${response.statusCode}');
+        // print('Failed to submit data: ${response.statusCode}');
       }
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
-      if (account != null) {
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => _buildProfilePage(),
-        //   ),
-        // );
-      }
-    });
-    _googleSignIn.signInSilently();
-  }
 
   String? _errorMessagenama; // Untuk menyimpan pesan kesalahan
   String? _errorMessageemail; // Untuk menyimpan pesan kesalahan
@@ -159,6 +228,14 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
         _errorMessagenama = null; // Hapus pesan kesalahan jika valid
       }
     });
+  }
+
+  Future<void> _handleSignIn() async {
+    try {
+      await _googleSignIn.signIn();
+    } catch (error) {
+      print('Sign-in failed: $error');
+    }
   }
 
   @override
@@ -762,14 +839,12 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
     );
   }
 
-  Future<void> _handleSignIn() async {
-    try {
-      await _googleSignIn.signIn();
-    } catch (error) {
-      print('Sign-in failed: $error');
-    }
-  }
+  
 }
+
+// Widget buildProfilePage() {
+//   return _buildProfilePage(); // Ini bisa diganti dengan widget yang sesuai
+// }
 
 class WaveClipper extends CustomClipper<Path> {
   @override

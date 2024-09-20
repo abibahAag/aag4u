@@ -133,81 +133,140 @@ class _TestimoniwidgetState extends State<Testimoniwidget> {
     futureTesti = fetchTesti();
   }
 
-  Future<List<Testi>> fetchTesti() async {
+   Future<List<Testi>> fetchTesti() async {
     var box = await Hive.openBox('testiBox');
-    bool hasConnection = await InternetConnectionChecker().hasConnection;
 
-    if (!hasConnection) {
-      // Jika tidak ada koneksi internet, ambil data dari Hive
+    // Cek apakah data sudah ada di cache Hive
+    if (box.isNotEmpty) {
       List<String> imageNames = box.keys.cast<String>().toList();
-      List<Testi> testis = [];
+      List<Testi> Testis = [];
 
+      // Ambil data dari Hive
       for (var imageName in imageNames) {
         String? base64Image = box.get(imageName);
         if (base64Image != null) {
-          // Anda bisa menambahkan logika untuk membangun objek Testi dari base64Image
-          testis.add(Testi(
+          Testis.add(Testi(
               gambar_testi:
-                  'https://app.aag4u.co.id/public/image/testi/$imageName'));
+                  'https://app.aag4u.co.id/api/getTesti/$imageName'));
         }
       }
 
-      return testis;
+      // Kembalikan data dari cache Hive
+      print('Data loaded from cache');
+      return Testis;
+    }
+
+    // Jika cache kosong, ambil data dari API dan simpan ke cache
+    print('Fetching data from API');
+    final response =
+        await http.get(Uri.parse('https://app.aag4u.co.id/api/getTesti'));
+
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      List<Testi> Testis =
+          jsonResponse.map((data) => Testi.fromJson(data)).toList();
+
+      // Simpan data di cache Hive
+      for (var Testi in Testis) {
+        String imageName = Testi.gambar_testi.split('/').last;
+        String? base64Image = await fetchImageAsBase64(Testi.gambar_testi);
+        if (base64Image != null) {
+          await box.put(imageName, base64Image);
+        }
+      }
+
+      // Kembalikan data yang baru diambil dari API
+      return Testis;
     } else {
-      // Jika ada koneksi internet, ambil data dari API dan simpan ke Hive
-      try {
-        final response =
-            await http.get(Uri.parse('https://app.aag4u.co.id/api/getTesti'));
-
-        if (response.statusCode == 200) {
-          List jsonResponse = json.decode(response.body);
-          List<Testi> testis =
-              jsonResponse.map((data) => Testi.fromJson(data)).toList();
-
-          // Menyimpan setiap gambar ke Hive
-          for (var testi in testis) {
-            String imageName = testi.gambar_testi.split('/').last;
-            String? base64Image = await fetchImageAsBase64(testi.gambar_testi);
-            if (base64Image != null) {
-              await box.put(imageName, base64Image);
-            }
-          }
-
-          return testis;
-        } else {
-          throw Exception('Failed to load Testi posts');
-        }
-      } catch (e) {
-        print("Error fetching data: $e");
-        // Jika terjadi kesalahan saat fetching dari API, ambil data dari Hive
-        List<String> imageNames = box.keys.cast<String>().toList();
-        List<Testi> testis = [];
-
-        for (var imageName in imageNames) {
-          String? base64Image = box.get(imageName);
-          if (base64Image != null) {
-            testis.add(Testi(
-                gambar_testi:
-                    'https://app.aag4u.co.id/public/image/testi/$imageName'));
-          }
-        }
-
-        return testis;
-      }
+      throw Exception('Failed to load Banner posts');
     }
   }
 
+// Fungsi untuk mengambil gambar sebagai base64
   Future<String?> fetchImageAsBase64(String imageUrl) async {
-    try {
-      final response = await http.get(Uri.parse(imageUrl));
-      if (response.statusCode == 200) {
-        return base64Encode(response.bodyBytes);
-      }
-    } catch (e) {
-      print("Error fetching image: $e");
+    final response = await http.get(Uri.parse(imageUrl));
+    if (response.statusCode == 200) {
+      // Mengonversi byte dari response body ke base64
+      return base64Encode(response.bodyBytes);
     }
     return null;
   }
+
+  // Future<List<Testi>> fetchTesti() async {
+  //   var box = await Hive.openBox('testiBox');
+  //   bool hasConnection = await InternetConnectionChecker().hasConnection;
+
+  //   if (!hasConnection) {
+  //     // Jika tidak ada koneksi internet, ambil data dari Hive
+  //     List<String> imageNames = box.keys.cast<String>().toList();
+  //     List<Testi> testis = [];
+
+  //     for (var imageName in imageNames) {
+  //       String? base64Image = box.get(imageName);
+  //       if (base64Image != null) {
+  //         // Anda bisa menambahkan logika untuk membangun objek Testi dari base64Image
+  //         testis.add(Testi(
+  //             gambar_testi:
+  //                 'https://app.aag4u.co.id/public/image/testi/$imageName'));
+  //       }
+  //     }
+
+  //     return testis;
+  //   } else {
+  //     // Jika ada koneksi internet, ambil data dari API dan simpan ke Hive
+  //     try {
+  //       final response =
+  //           await http.get(Uri.parse('https://app.aag4u.co.id/api/getTesti'));
+
+  //       if (response.statusCode == 200) {
+  //         List jsonResponse = json.decode(response.body);
+  //         List<Testi> testis =
+  //             jsonResponse.map((data) => Testi.fromJson(data)).toList();
+
+  //         // Menyimpan setiap gambar ke Hive
+  //         for (var testi in testis) {
+  //           String imageName = testi.gambar_testi.split('/').last;
+  //           String? base64Image = await fetchImageAsBase64(testi.gambar_testi);
+  //           if (base64Image != null) {
+  //             await box.put(imageName, base64Image);
+  //           }
+  //         }
+
+  //         return testis;
+  //       } else {
+  //         throw Exception('Failed to load Testi posts');
+  //       }
+  //     } catch (e) {
+  //       print("Error fetching data: $e");
+  //       // Jika terjadi kesalahan saat fetching dari API, ambil data dari Hive
+  //       List<String> imageNames = box.keys.cast<String>().toList();
+  //       List<Testi> testis = [];
+
+  //       for (var imageName in imageNames) {
+  //         String? base64Image = box.get(imageName);
+  //         if (base64Image != null) {
+  //           testis.add(Testi(
+  //               gambar_testi:
+  //                   'https://app.aag4u.co.id/public/image/testi/$imageName'));
+  //         }
+  //       }
+
+  //       return testis;
+  //     }
+  //   }
+  // }
+
+  // Future<String?> fetchImageAsBase64(String imageUrl) async {
+  //   try {
+  //     final response = await http.get(Uri.parse(imageUrl));
+  //     if (response.statusCode == 200) {
+  //       return base64Encode(response.bodyBytes);
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching image: $e");
+  //   }
+  //   return null;
+  // }
 
   @override
   Widget build(BuildContext context) {

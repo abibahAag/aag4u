@@ -1641,10 +1641,10 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
                                                                                 ],
                                                                               ),
                                                                               SizedBox(
-                                                                                height: 20,
+                                                                                height: 30,
                                                                               ),
                                                                               Row(
-                                                                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                 children: [
                                                                                   Column(
                                                                                     children: [
@@ -1704,7 +1704,7 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
                                                                                     ],
                                                                                   ),
                                                                                   SizedBox(
-                                                                                    width: 20,
+                                                                                    width: 10,
                                                                                   ),
                                                                                   Column(
                                                                                     children: [
@@ -1739,7 +1739,7 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
                                                                                                 Row(
                                                                                                   children: [
                                                                                                     Container(
-                                                                                                      width: 130,
+                                                                                                      width: 120,
                                                                                                       height: 50,
                                                                                                       child: TextFormField(
                                                                                                         controller: _timeController,

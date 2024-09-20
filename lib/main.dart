@@ -80,6 +80,7 @@ void main() async {
     WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox('loginBox'); // Buka Hive box untuk menyimpan data login
+  
 
 //   await Firebase.initializeApp();
 //   await NotificationController.initializeLocalNotifications();
@@ -150,7 +151,7 @@ class _MyAppState extends State<MyApp> {
       navigatorKey: nevegatorkey,
       routes: {
         "/": (context) => SplashScreenPage(),
-        "homePage": (context) => homePage(),
+        "homePage": (context) => homePage(isRegistered: false, isLoggedIn: false),
         "BerandaPage": (context) => berandaPage(),
         "surveyPage": (context) => SurveyPage(),
         "promoPage": (context) => promoPage(),
