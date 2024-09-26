@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   awesome_notifications
   connectivity_plus
   firebase_core
+  syncfusion_pdfviewer_windows
   url_launcher_windows
 )
 

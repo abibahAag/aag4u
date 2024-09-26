@@ -720,6 +720,26 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
     }
   }
 
+  String formatTanggal(String inputDate) {
+    // Parse tanggal dari format string 'yyyy-MM-dd'
+    DateTime dateTime = DateTime.parse(inputDate);
+
+    // Format tanggal ke 'dd MMM yyyy'
+    String formattedDate = DateFormat('dd MMM yyyy').format(dateTime);
+
+    return formattedDate;
+  }
+
+  String formatTime(String inputTime) {
+    // Parse string time '15:30:00' ke DateTime
+    DateTime dateTime = DateFormat('HH:mm:ss').parse(inputTime);
+
+    // Format waktu ke 'HH:mm'
+    String formattedTime = DateFormat('HH:00').format(dateTime);
+
+    return formattedTime;
+  }
+
   // void main() {
   //   String isoDate = ({surveyData['wa'] ?? 'N/A'});
 
@@ -1042,6 +1062,75 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                                                                                         hamaNames.isNotEmpty ? hamaNames : 'No data',
                                                                                                                                                         overflow: TextOverflow.clip,
                                                                                                                                                         style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 7, 10, 113), fontWeight: FontWeight.bold),
+                                                                                                                                                      ),
+                                                                                                                                                    ),
+                                                                                                                                                  ],
+                                                                                                                                                ),
+                                                                                                                                              ),
+                                                                                                                                            ],
+                                                                                                                                          ),
+                                                                                                                                        ],
+                                                                                                                                      ),
+                                                                                                                                    ),
+                                                                                                                                  ),
+                                                                                                                                ],
+                                                                                                                              ),
+                                                                                                                            ],
+                                                                                                                          ),
+                                                                                                                          SizedBox(
+                                                                                                                            height: 20,
+                                                                                                                          ),
+                                                                                                                          Row(
+                                                                                                                            mainAxisAlignment: MainAxisAlignment.start,
+                                                                                                                            children: [
+                                                                                                                              Column(
+                                                                                                                                // crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                                children: [
+                                                                                                                                  Container(
+                                                                                                                                    // color: Colors.blue,
+                                                                                                                                    width: inWidth,
+                                                                                                                                    child: Padding(
+                                                                                                                                      padding: const EdgeInsets.only(
+                                                                                                                                        top: 10,
+                                                                                                                                      ),
+                                                                                                                                      child: Column(
+                                                                                                                                        // mainAxisAlignment: MainAxisAlignment.start,
+                                                                                                                                        children: [
+                                                                                                                                          Row(
+                                                                                                                                            children: [
+                                                                                                                                              Container(
+                                                                                                                                                child: Text(
+                                                                                                                                                  'PERMINTAAN SURVEY',
+                                                                                                                                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                                                                                                                                ),
+                                                                                                                                              ),
+                                                                                                                                            ],
+                                                                                                                                          ),
+                                                                                                                                          Row(
+                                                                                                                                            children: [
+                                                                                                                                              Padding(
+                                                                                                                                                padding: const EdgeInsets.only(top: 5, left: 0),
+                                                                                                                                                child: Column(
+                                                                                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                                                  children: [
+                                                                                                                                                    // Add some spacing
+                                                                                                                                                    Container(
+                                                                                                                                                      width: inWidth,
+                                                                                                                                                      // color: Colors.blue,
+                                                                                                                                                      child: Row(
+                                                                                                                                                        children: [
+                                                                                                                                                          Text(
+                                                                                                                                                            surveyData['jadwal'] != null && surveyData['jadwal'].isNotEmpty ? formatTanggal(surveyData['jadwal']) : 'N/A',
+                                                                                                                                                            overflow: TextOverflow.clip,
+                                                                                                                                                            style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 7, 10, 113), fontWeight: FontWeight.bold),
+                                                                                                                                                          ),
+                                                                                                                                                          Text(' - '),
+                                                                                                                                                          Text(
+                                                                                                                                                            surveyData['jam'] != null && surveyData['jam'].isNotEmpty ? formatTime(surveyData['jam']) : 'N/A',
+                                                                                                                                                            overflow: TextOverflow.clip,
+                                                                                                                                                            style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 7, 10, 113), fontWeight: FontWeight.bold),
+                                                                                                                                                          ),
+                                                                                                                                                        ],
                                                                                                                                                       ),
                                                                                                                                                     ),
                                                                                                                                                   ],

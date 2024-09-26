@@ -143,7 +143,7 @@ class _MyAppState extends State<MyApp> {
         "promoPage": (context) => promoPage(),
         // "profilePage": (context) => promoPage(),
         "blogPage": (context) => BlogPage(),
-        "chatPage": (context) => ChatPage(),
+        "chatPage": (context) => Chatpage(),
       },
     );
   }

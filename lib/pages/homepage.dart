@@ -10,7 +10,6 @@ import 'package:flutter_aag4u/pages/promoPage.dart';
 import 'package:flutter_aag4u/pages/surveyPage.dart';
 import 'package:flutter_aag4u/template/navbar.dart';
 
-
 class homePage extends StatefulWidget {
   const homePage({super.key});
   @override
@@ -42,7 +41,7 @@ class _homePage extends State<homePage> {
       // const Text("promo"),
       promoPage(),
       // const Text("chat"),
-      ChatPage(),
+      Chatpage(),
       // const Text("profile"),
       ProfilePage(),
     ];
