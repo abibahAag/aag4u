@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_aag4u/Menu_Promo/MenuPromoWidget.dart';
 import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
-import 'package:flutter_aag4u/pages/promoPage.dart';
 
 class MenuPromoPage extends StatefulWidget {
   const MenuPromoPage({super.key});
@@ -29,45 +27,85 @@ class _MenuPromoPageState extends State<MenuPromoPage> {
     double screenWidth = MediaQuery.of(context).size.width * 0.9;
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        // appBar: Navbar(),
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: true,
+      //   // appBar: Navbar(),
 
-        title: Container(
-          // color: Colors.amber,
-          width: 250,
-          // height: 300,
-          child: Column(
-            children: [
-              Container(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Column(
-                      children: [
-                        Container(
-                          child: Image.asset(
-                            "images/icons/aagu.png",
-                            height: 100,
-                            width: 100,
-                          ),
-                        ),
-                        // Text(
-                        //   "data",
-                        //   style: TextStyle(color: Colors.black, fontSize: 5),
-                        // )
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      //   title: Container(
+      //     // color: Colors.amber,
+      //     width: 250,
+      //     // height: 300,
+      //     child: Column(
+      //       children: [
+      //         Container(
+      //           child: Row(
+      //             mainAxisAlignment: MainAxisAlignment.center,
+      //             children: [
+      //               Column(
+      //                 children: [
+      //                   Container(
+      //                     child: Image.asset(
+      //                       "images/icons/aagu.png",
+      //                       height: 100,
+      //                       width: 100,
+      //                     ),
+      //                   ),
+      //                   // Text(
+      //                   //   "data",
+      //                   //   style: TextStyle(color: Colors.black, fontSize: 5),
+      //                   // )
+      //                 ],
+      //               ),
+      //             ],
+      //           ),
+      //         ),
+      //       ],
+      //     ),
+      //   ),
+      // ),
       body: SingleChildScrollView(
         child: Column(
-          children: [promoPage()],
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: screenWidth,
+                        height: 50,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          // color: Colors.amber,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Text(
+                          "Promo",
+                          style: TextStyle(
+                            fontSize: 35,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF233d63),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+              Row(
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        child: promoPage(),
+                      )
+                    ],
+                )],
+              )
+          ],
         ),
       ),
     );
