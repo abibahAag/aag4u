@@ -1,17 +1,19 @@
 // import 'dart:ffi';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_aag4u/Menu_Promo/MenuPromoWidget.dart';
 import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
 import 'package:flutter_aag4u/pages/berandaPage.dart';
 import 'package:flutter_aag4u/pages/chatPage.dart';
 import 'package:flutter_aag4u/pages/profilePage.dart';
-import 'package:flutter_aag4u/pages/promoPage.dart';
 import 'package:flutter_aag4u/pages/surveyPage.dart';
-import 'package:flutter_aag4u/template/navbar.dart';
 
 class homePage extends StatefulWidget {
-  const homePage({super.key});
+  // const homePage({super.key});
+  final bool isRegistered; // Tambahkan flag untuk status registrasi
+  final bool isLoggedIn; // Status apakah sudah login
+
+  homePage({required this.isRegistered, required this.isLoggedIn});
+
   @override
   State<homePage> createState() => _homePage();
 }
@@ -19,6 +21,7 @@ class homePage extends StatefulWidget {
 class _homePage extends State<homePage> {
   int _selectedTabIndex = 0;
   // String notificationMsg = "waiting for notifications";
+  bool isRefreshing = false;
 
   @override
   void _onNavBarTapped(int index) {
@@ -32,6 +35,60 @@ class _homePage extends State<homePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Cek kondisi apakah sudah register dan login
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.isRegistered) {
+        _showVerificationAlert();
+      }
+      if (widget.isLoggedIn) {
+        _showLoginAlert();
+      }
+    });
+  }
+
+  void _showVerificationAlert() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Verifikasi Email'),
+          content: Text('Cek email untuk melakukan verifikasi akun.'),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Menutup dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showLoginAlert() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Login success'),
+          // content: Text('Anda telah berhasil login. Selamat datang!'),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Menutup dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final _listPage = <Widget>[
       // const Text("Beranda"),
@@ -41,9 +98,12 @@ class _homePage extends State<homePage> {
       // const Text("promo"),
       promoPage(),
       // const Text("chat"),
-      Chatpage(),
+      ChatPage(),
       // const Text("profile"),
-      ProfilePage(),
+      ProfilePage(
+        isRegistered: false,
+        login: true,
+      ),
     ];
 
     final _bottonNavBarItems = <BottomNavigationBarItem>[

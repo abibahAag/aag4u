@@ -103,7 +103,8 @@ Future<List<Testi>>? futureTesti;
                         child: ClipRRect(
                           // borderRadius: BorderRadius.circular(24.0),
                           child: Center(
-                            child: Image.network(
+                            child: 
+                            Image.network(
                               Testi.gambar_splash.toString(),
                               width: screen,
                               fit: BoxFit.cover,

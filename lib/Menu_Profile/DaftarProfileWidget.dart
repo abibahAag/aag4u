@@ -364,7 +364,10 @@ class _DaftarProfileWidgetState extends State<DaftarProfileWidget> {
                                                         context,
                                                         MaterialPageRoute(
                                                             builder: (context) =>
-                                                                ProfilePage()),
+                                                                ProfilePage(isRegistered: true,
+                                                                      login:
+                                                                          true,
+                                                                    )),
                                                       );
                                                     },
                                                     child: Row(

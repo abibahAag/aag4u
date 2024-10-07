@@ -1060,8 +1060,11 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                                                                                       // color: Colors.blue,
                                                                                                                                                       child: Text(
                                                                                                                                                         hamaNames.isNotEmpty ? hamaNames : 'No data',
-                                                                                                                                                        overflow: TextOverflow.clip,
+                                                                                                                                                        // overflow: TextOverflow.clip,
                                                                                                                                                         style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 7, 10, 113), fontWeight: FontWeight.bold),
+                                                                                                                                                        maxLines: 3,
+                                                                                                                                                        overflow: TextOverflow.visible,
+                                                                                                                                                        softWrap: true,
                                                                                                                                                       ),
                                                                                                                                                     ),
                                                                                                                                                   ],
@@ -1280,21 +1283,50 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                                                                             ),
                                                                                                                                           ],
                                                                                                                                         ),
+                                                                                                                                        // Row(
+                                                                                                                                        //   children: [
+                                                                                                                                        //     Column(
+                                                                                                                                        //       children: [
+                                                                                                                                        //         Column(
+                                                                                                                                        //           // mainAxisAlignment:
+                                                                                                                                        //           //     MainAxisAlignment.start,
+                                                                                                                                        //           children: [
+                                                                                                                                        //             Text(
+                                                                                                                                        //               '${surveyData['kota'] ?? 'N/A'}',
+                                                                                                                                        //               style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 7, 10, 113), fontWeight: FontWeight.bold),
+                                                                                                                                        //               // maxLines: 3,
+                                                                                                                                        //               overflow: TextOverflow.visible,
+                                                                                                                                        //               // softWrap: true,
+                                                                                                                                        //             ),
+                                                                                                                                        //           ],
+                                                                                                                                        //         ),
+                                                                                                                                        //       ],
+                                                                                                                                        //     ),
+                                                                                                                                        //   ],
+                                                                                                                                        // ),
+
                                                                                                                                         Row(
                                                                                                                                           children: [
-                                                                                                                                            Column(
-                                                                                                                                              children: [
-                                                                                                                                                Column(
-                                                                                                                                                  // mainAxisAlignment:
-                                                                                                                                                  //     MainAxisAlignment.start,
-                                                                                                                                                  children: [
-                                                                                                                                                    Text(
+                                                                                                                                            Padding(
+                                                                                                                                              padding: const EdgeInsets.only(top: 5, left: 0),
+                                                                                                                                              child: Column(
+                                                                                                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                                                children: [
+                                                                                                                                                  // Add some spacing
+                                                                                                                                                  Container(
+                                                                                                                                                    width: inWidth,
+                                                                                                                                                    // color: Colors.blue,
+                                                                                                                                                    child: Text(
                                                                                                                                                       '${surveyData['kota'] ?? 'N/A'}',
+                                                                                                                                                      // overflow: TextOverflow.clip,
                                                                                                                                                       style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 7, 10, 113), fontWeight: FontWeight.bold),
+                                                                                                                                                      maxLines: 3,
+                                                                                                                                                      overflow: TextOverflow.visible,
+                                                                                                                                                      softWrap: true,
                                                                                                                                                     ),
-                                                                                                                                                  ],
-                                                                                                                                                ),
-                                                                                                                                              ],
+                                                                                                                                                  ),
+                                                                                                                                                ],
+                                                                                                                                              ),
                                                                                                                                             ),
                                                                                                                                           ],
                                                                                                                                         ),
@@ -1387,7 +1419,7 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                                                                                 onPressed: () {
                                                                                                                                                   Navigator.push(
                                                                                                                                                     context,
-                                                                                                                                                    MaterialPageRoute(builder: (context) => homePage()),
+                                                                                                                                                    MaterialPageRoute(builder: (context) => homePage(isRegistered: false, isLoggedIn: false)),
                                                                                                                                                   );
                                                                                                                                                 },
                                                                                                                                                 child: Text('Ke Home')),

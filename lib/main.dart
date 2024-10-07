@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Blog/BlogPage.dart';
-import 'package:flutter_aag4u/Menu_Promo/MenuPromoWidget.dart';
+// import 'package:flutter_aag4u/Menu_Promo/MenuPromoWidget.dart';
 import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
 import 'package:flutter_aag4u/api/firebase_api.dart';
 import 'package:flutter_aag4u/controller/notification_controller.dart';
@@ -13,10 +13,12 @@ import 'package:flutter_aag4u/pages/SplashScreenPage.dart';
 import 'package:flutter_aag4u/pages/berandaPage.dart';
 import 'package:flutter_aag4u/pages/chatPage.dart';
 import 'package:flutter_aag4u/pages/homepage.dart';
-import 'package:flutter_aag4u/pages/promoPage.dart';
+// import 'package:flutter_aag4u/pages/promoPage.dart';
 import 'package:flutter_aag4u/pages/surveyPage.dart';
 import 'package:flutter_aag4u/services/local_notifications.dart';
+import 'package:flutter_aag4u/widgets/PekerjaanWidget.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import 'firebase_options.dart';
 
@@ -37,6 +39,11 @@ Future<void> _backgroundMessageHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   LocalNotificationsService.showNotificationOnForeground(message);
 }
+
+///login with google
+GoogleSignIn _googleSignIn = GoogleSignIn(
+  scopes: <String>['email'],
+);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,6 +74,11 @@ void main() async {
       nevegatorkey.currentState!.pushNamed("/message", arguments: message);
     });
   }
+
+  /// untuk menyimpan data login ke dalam hive box
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await Hive.openBox('loginBox'); // Buka Hive box untuk menyimpan data login
 
 //   await Firebase.initializeApp();
 //   await NotificationController.initializeLocalNotifications();
@@ -137,13 +149,15 @@ class _MyAppState extends State<MyApp> {
       navigatorKey: nevegatorkey,
       routes: {
         "/": (context) => SplashScreenPage(),
-        "homePage": (context) => homePage(),
+        "homePage": (context) =>
+            homePage(isRegistered: false, isLoggedIn: false),
         "BerandaPage": (context) => berandaPage(),
         "surveyPage": (context) => SurveyPage(),
         "promoPage": (context) => promoPage(),
-        // "profilePage": (context) => promoPage(),
+        // "profilePage": (context) =>
+        //     Pekerjaanwidget(email: '', name: '', phoneNumber: ''),
         "blogPage": (context) => BlogPage(),
-        "chatPage": (context) => Chatpage(),
+        "chatPage": (context) => ChatPage(),
       },
     );
   }

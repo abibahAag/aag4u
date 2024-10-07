@@ -18,7 +18,7 @@ class SplashScreenPage extends StatelessWidget {
         } else {
     return Scaffold(
         body: SafeArea(
-          child: homePage()),
+          child: homePage(isRegistered: false, isLoggedIn: false)),
     );
      }
         });

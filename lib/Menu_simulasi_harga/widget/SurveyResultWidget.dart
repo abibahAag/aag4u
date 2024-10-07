@@ -575,7 +575,7 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                             onPressed: () {
                                                                               Navigator.push(
                                                                                 context,
-                                                                                MaterialPageRoute(builder: (context) => homePage()),
+                                                                                MaterialPageRoute(builder: (context) => homePage(isRegistered: false, isLoggedIn: false)),
                                                                               );
                                                                             },
                                                                             child: Text('Ke Home'))

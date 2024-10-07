@@ -6,12 +6,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Blog/BlogPage.dart';
 import 'package:flutter_aag4u/Menu_Permintaan_Survey/pages/simulasihargaPage.dart';
-import 'package:flutter_aag4u/Menu_Promo/MenuPromoPage.dart';
-import 'package:flutter_aag4u/pages/promoPage.dart';
+import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
 import 'package:flutter_aag4u/template/navbar.dart';
 import 'package:flutter_aag4u/widgets/BannerWidget.dart';
 import 'package:flutter_aag4u/widgets/BlogWidget.dart';
-import 'package:flutter_aag4u/widgets/PekerjaanWidget.dart';
 import 'package:flutter_aag4u/widgets/TestimoniWidget.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 // import 'package:flutter_aag4u/widgets/HomeBottomNavBar.dart';
@@ -25,39 +23,6 @@ class berandaPage extends StatefulWidget {
 class _berandaPage extends State<berandaPage> {
   get controller => null;
   String notificationMsg = "waiting for notifications";
-
-  //  @override
-  // void iniState(int index) {
-  //   super.initState();
-
-  //   LocalNotificationsService.initilize();
-
-  //   ///Terminated State
-  //   FirebaseMessaging.instance.getInitialMessage().then((event){
-  //     if (event != null) {
-  //     setState(() {
-  //       notificationMsg = "${event!.notification!.title} ${event.notification!.body} I am coming from terminated state";
-  //     });
-  //     }
-  //   });
-
-  //   ///Foregrand State
-  //   FirebaseMessaging.onMessage.listen((event) {
-  //     LocalNotificationsService.showNotificationOnForeground(event);
-  //     setState(() {
-  //       notificationMsg = "${event.notification!.title} ${event.notification!.body} I am coming forground";
-  //     });
-  //   });
-
-  //   ///Background State
-  //   FirebaseMessaging.onMessageOpenedApp.listen((event ) {
-  //     setState(() {
-  //       notificationMsg = "${event.notification!.title} ${event.notification!.body} I am coming background";
-  //     });
-
-  //   });
-
-  // }
 
   Map payload = {};
   @override
@@ -341,27 +306,25 @@ class _berandaPage extends State<berandaPage> {
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           10)),
-                                              child:
-                                                  InkWell(
-                                                    onTap: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                PekerjaanWidget()),
-                                                      );
-                                                    },
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment.center,
-                                                      children: [
-                                                        Container(
-                                                            child: Image.asset(
-                                                                "images/icons/survey.png")),
-                                                        // const SizedBox(height: 5,),
-                                                      ],
-                                                    ),
-                                                  ),
+                                              child: InkWell(
+                                                onTap: () {
+                                                  // Navigator.push(
+                                                  //   context,
+                                                  //   MaterialPageRoute(
+                                                  // builder: (context) => Pekerjaanwidget()),
+                                                  // );
+                                                },
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                        child: Image.asset(
+                                                            "images/icons/survey.png")),
+                                                    // const SizedBox(height: 5,),
+                                                  ],
+                                                ),
+                                              ),
                                               //     GestureDetector(
                                               //   onTap: () {
                                               //     showDialog(
