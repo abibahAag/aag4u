@@ -280,8 +280,6 @@
 
 // }
 
-import 'dart:convert';
-
 // import 'package:flutter/material.dart';
 // import 'package:hive/hive.dart';
 // import 'package:http/http.dart' as http;
@@ -359,6 +357,8 @@ import 'dart:convert';
 //     return null;
 //   }
 
+import 'dart:convert';
+
 import 'package:connectivity_plus/connectivity_plus.dart'; // Gunakan untuk cek koneksi
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -386,6 +386,7 @@ class BannerWidget extends StatefulWidget {
 }
 
 class _BannerWidgetState extends State<BannerWidget> {
+  // late Future<List<Banner>> _banners;
   late Future<List<Map<String, dynamic>>> _hiveData;
 
   @override
@@ -402,7 +403,7 @@ class _BannerWidgetState extends State<BannerWidget> {
     bool isConnected = await InternetConnectionChecker().hasConnection;
 
     if (isConnected) {
-      // Fetch data from API if internet is available
+      // Fetch data from API jika ada internet
       print('Fetching data from API');
       final response =
           await http.get(Uri.parse('https://app.aag4u.co.id/api/getBanner'));
@@ -412,71 +413,56 @@ class _BannerWidgetState extends State<BannerWidget> {
         List<Banner> banners =
             jsonResponse.map((data) => Banner.fromJson(data)).toList();
 
-        // Iterate over banners to check and update if necessary
+        // Periksa dan update Hive jika diperlukan
         for (var banner in banners) {
           String imageName = banner.gambar_banner.split('/').last;
 
           // Periksa apakah gambar sudah ada di Hive
           String? storedBase64Image = box.get(imageName);
 
-          // Ambil gambar terbaru sebagai base64 dari API
+          // Ambil gambar terbaru dari API sebagai base64
           String? newBase64Image =
               await fetchImageAsBase64(banner.gambar_banner);
 
-          // Jika gambar dari API tidak sama dengan yang ada di Hive, atau hilang, perbarui Hive
+          // Jika gambar dari API berbeda dengan di Hive, update Hive
           if (newBase64Image != null && newBase64Image != storedBase64Image) {
             await box.put(imageName, newBase64Image);
           }
-
-          // Mengambil semua data dari Hive setelah pembaruan
-          List<Banner> updatedBanners = [];
-          for (var key in box.keys) {
-            String base64Image = box.get(key);
-            String imageUrl =
-                'https://app.aag4u.co.id/public/image/banner/$key'; // Construct the image URL based on the image name
-
-            // Create a Banner object with imageUrl
-            updatedBanners.add(Banner(gambar_banner: imageUrl));
-          }
         }
 
-        // Return the latest banners in reverse order (newest on top)
-        return banners.reversed.toList();
-      } else {
-        // No internet: fetch data from Hive
-        List<Banner> banners = [];
-
-        // Iterate over the Hive box and reconstruct Banner objects
+        // Mengambil semua data dari Hive setelah pembaruan
+        List<Banner> updatedBanners = [];
         for (var key in box.keys) {
           String base64Image = box.get(key);
-          String imageUrl =
-              'https://app.aag4u.co.id/public/image/banner/$key'; // Construct the image URL based on the image name
+          String imageUrl = 'https://app.aag4u.co.id/public/image/banner/$key';
 
-          // Create a Banner object with imageUrl, assuming other fields are unavailable
-          banners.add(Banner(gambar_banner: imageUrl));
+          // Membuat objek Banner dengan imageUrl
+          updatedBanners.add(Banner(gambar_banner: imageUrl));
         }
 
-        // Return data from Hive in reverse order (newest on top)
-        return banners.reversed.toList();
+        // Return daftar banner terbaru
+        return updatedBanners.reversed.toList();
+      } else {
+        // Gagal mengambil data dari API: Ambil data dari Hive
+        print('Error response: ${response.statusCode}');
       }
-    } else {
-      // No internet: fetch data from Hive
-      print('No internet, fetching data from Hive');
-      List<Banner> banners = [];
-
-      // Iterate over the Hive box and reconstruct Banner objects
-      for (var key in box.keys) {
-        String base64Image = box.get(key);
-        String imageUrl =
-            'https://app.aag4u.co.id/public/image/banner/$key'; // Construct the image URL based on the image name
-
-        // Create a Banner object with imageUrl, assuming other fields are unavailable
-        banners.add(Banner(gambar_banner: imageUrl));
-      }
-
-      // Return data from Hive in reverse order (newest on top)
-      return banners.reversed.toList();
     }
+
+    // Tidak ada internet: Ambil data dari Hive
+    print('No internet, fetching data from Hive');
+    List<Banner> banners = [];
+
+    // Iterasi melalui Hive dan buat objek Banner
+    for (var key in box.keys) {
+      String base64Image = box.get(key);
+      String imageUrl = 'https://app.aag4u.co.id/public/image/banner/$key';
+
+      // Membuat objek Banner dengan imageUrl
+      banners.add(Banner(gambar_banner: imageUrl));
+    }
+
+    // Return daftar banner dari Hive
+    return banners.reversed.toList();
   }
 
 // Fungsi untuk mengambil gambar sebagai base64
@@ -489,11 +475,13 @@ class _BannerWidgetState extends State<BannerWidget> {
     return null;
   }
 
+// Fungsi untuk refresh data banner
   Future<void> _refreshData() async {
     await fetchBanner();
     setState(() {});
   }
 
+// Fungsi untuk mengambil data dari Hive
   Future<List<Map<String, dynamic>>> _fetchHiveData() async {
     var box = await Hive.openBox('bannerBox');
     List<Map<String, dynamic>> hiveData = [];
@@ -506,7 +494,7 @@ class _BannerWidgetState extends State<BannerWidget> {
       });
     }
 
-    // Membalik urutan data dari Hive agar yang terbaru ada di atas
+    // Membalik urutan data dari Hive agar gambar terbaru ada di atas
     return hiveData.reversed.toList();
   }
 
@@ -540,13 +528,39 @@ class _BannerWidgetState extends State<BannerWidget> {
                           ? Image.memory(
                               base64Decode(base64Image),
                               width: screenWidth,
-                              height: 100,
+                              // height: 100,
                               fit: BoxFit.cover,
                             )
                           : Container(
                               width: 300,
                               height: 200,
                               color: Colors.grey[300],
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  child: Text(
+                                                    "Tidak ada banner yang tersedia",
+                                                    style: TextStyle(
+                                                      fontSize: 20,
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  )
+                                ],
+                              ),
                             ),
                     ],
                   ),
@@ -556,51 +570,6 @@ class _BannerWidgetState extends State<BannerWidget> {
           );
         }
       },
-
-      // FutureBuilder<List<Banner>>(
-      //   future: futureBanner,
-      //   builder: (context, snapshot) {
-      //     if (snapshot.connectionState == ConnectionState.waiting) {
-      //       return buildShimmer();
-      //     } else if (snapshot.hasError) {
-      //       return Center(child: Text("${snapshot.error}"));
-      //     } else if (snapshot.hasData) {
-      //       List<Banner> posts = snapshot.data!;
-
-      //       return Row(
-      //         children: posts.map((banner) {
-      //           var box = Hive.box('bannerBox');
-      //           String imageName = banner.gambar_banner.split('/').last;
-      //           String? base64Image = box.get(imageName);
-
-      //           return Card(
-      //             margin: EdgeInsets.all(0),
-      //             child: Column(
-      //               crossAxisAlignment: CrossAxisAlignment.start,
-      //               children: [
-      //                 base64Image != null
-      //                     ? Image.memory(
-      //                         base64Decode(base64Image),
-      //                         width: screenWidth,
-      //                         height: 100,
-      //                         fit: BoxFit.cover,
-      //                       )
-      //                     : Container(
-      //                         width: screenWidth,
-      //                         height: 100,
-      //                         color: Colors.grey,
-      //                         child: Center(child: Text("Image not found")),
-      //                       ),
-      //               ],
-      //             ),
-      //           );
-      //         }).toList(),
-      //       );
-      //     } else {
-      //       return Center(child: Text("No data available"));
-      //     }
-      //   },
-      // ),
     );
   }
 
@@ -616,39 +585,6 @@ class _BannerWidgetState extends State<BannerWidget> {
               width: MediaQuery.of(context).size.width,
               height: 200,
               color: Colors.white,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                height: 24,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                height: 16,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                height: 16,
-                color: Colors.white,
-              ),
             ),
           ),
         ],

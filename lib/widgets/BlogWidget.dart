@@ -372,24 +372,25 @@ class _BlogWidgetState extends State<Blogwidget> {
         _cachedBlogs = blogs.reversed.toList(); // Cache the blogs in memory
         return _cachedBlogs!;
       } else {
-        throw Exception('Failed to load blogs from API');
+        // throw Exception('Failed to load blogs from API');
+        print('Error response: ${response.statusCode}');
       }
-    } else {
-      // No internet: retrieve data from Hive
-      print('No internet, fetching data from Hive');
-      List<Blog> blogs = [];
-
-      // Retrieve all blog data from Hive
-      for (var key in box.keys) {
-        Map<String, dynamic> blogData = box.get(key);
-        blogs.add(
-            Blog.fromJson(blogData)); // Recreate Blog objects from Hive data
-      }
-
-      // Cache the data and return it
-      _cachedBlogs = blogs.reversed.toList(); // Cache the blogs in memory
-      return _cachedBlogs!;
     }
+
+    // No internet: retrieve data from Hive
+    print('No internet, fetching data from Hive');
+    List<Blog> blogs = [];
+
+    // Retrieve all blog data from Hive
+    for (var key in box.keys) {
+      Map<String, dynamic> blogData = box.get(key);
+      blogs
+          .add(Blog.fromJson(blogData)); // Recreate Blog objects from Hive data
+    }
+
+    // Cache the data and return it
+    _cachedBlogs = blogs.reversed.toList(); // Cache the blogs in memory
+    return _cachedBlogs!;
   }
 
 // Function to fetch an image as base64
@@ -414,9 +415,12 @@ class _BlogWidgetState extends State<Blogwidget> {
 
     // Loop through all keys in the Hive box and reconstruct Blog objects
     for (var key in box.keys) {
-      Map<String, dynamic> blogData = box.get(key);
-      if (blogData != null && blogData is Map<String, dynamic>) {
-        blogs.add(Blog.fromJson(blogData)); // Convert JSON back to Blog object
+      var blogData = box.get(key);
+
+      // Ensure the fetched data is a Map and cast it to Map<String, dynamic>
+      if (blogData != null && blogData is Map) {
+        Map<String, dynamic> blogMap = Map<String, dynamic>.from(blogData);
+        blogs.add(Blog.fromJson(blogMap)); // Convert JSON back to Blog object
       }
     }
 
@@ -430,7 +434,7 @@ class _BlogWidgetState extends State<Blogwidget> {
     double blogWidth = screenWidth * 0.7;
 
     return FutureBuilder<List<Blog>>(
-      future: fetchBlog(), // Uses the cached or fetched data
+      future: _fetchBlogsFromHive(), // Fetch data from Hive instead of API
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           if (_cachedBlogs == null) {
@@ -451,7 +455,7 @@ class _BlogWidgetState extends State<Blogwidget> {
           );
         }
 
-        // If data is loaded (from Hive or API), update the cached data
+        // If data is loaded (from Hive), update the cached data
         _cachedBlogs = snapshot.data; // Cache the fetched data
         return _buildBlogCarousel(_cachedBlogs!, screenWidth, blogWidth);
       },

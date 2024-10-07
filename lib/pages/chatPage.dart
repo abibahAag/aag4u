@@ -1,342 +1,339 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_aag4u/template/navbar.dart';
+
+class ChatPage extends StatelessWidget {
+  const ChatPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: Navbar(),
+      body: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(0),
+                  child: Container(
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              "CHAT",
+                              style: TextStyle(
+                                fontSize: 25,
+                              ),
+                            )
+                          ],
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          children: [
+                            Column(
+                              children: [
+                                Container(
+                                  child: Text(
+                                    "COMING SOON",
+                                    style: TextStyle(
+                                      fontSize: 35,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+      // bottomNavigationBar: HomeBottomNavBar(),
+    );
+  }
+}
+
+// import 'dart:convert';
+
 // import 'package:flutter/material.dart';
-// import 'package:flutter_aag4u/template/navbar.dart';
-// // import 'package:flutter_aag4u/widgets/HomeBottomNavBar.dart';
-// // import 'package:flutter_aag4u/widgets/HomeBottomNavBar.dart';
+// import 'package:hive/hive.dart';
+// import 'package:http/http.dart' as http;
+// import 'package:internet_connection_checker/internet_connection_checker.dart';
+// import 'package:shimmer/shimmer.dart';
 
-// class ChatPage extends StatelessWidget {
-//   const ChatPage({super.key});
+// class Banner {
+//   final String gambar_banner;
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: Navbar(),
-//       body: SafeArea(
-//           child:
-//             Column(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//             children: [
-//               Row(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 Padding(padding: EdgeInsets.all(0),
-//                   child:
-//                     Container(
-//                       child:
-//                         Column(
-//                           children: [
-//                             Row(
-//                               children: [
-//                                 Text("CHAT",
-//                                   style: TextStyle(
-//                                     fontSize: 25,
-//                                   ),
-//                                 )
-//                               ],
-//                             ),
-//                             SizedBox(height: 10,),
-//                             Row(
-//                               children: [
-//                                 Column(
-//                                   children: [
-//                                     Container(
-//                                       child: Text(
-//                                         "COMING SOON",
-//                                         style: TextStyle(
-//                                           fontSize: 35,
-//                                           fontWeight: FontWeight.bold,
-//                                         ),
-//                                       ),
-//                                     )
-//                                   ],
-//                                 )
-//                               ],
-//                             ),
+//   Banner({required this.gambar_banner});
 
-//                           ],
-//                         ),
-//                   ),
-//                 ),
-
-//               ],
-//              )
-//         ],
-//       ),
-//       ),
-//       // bottomNavigationBar: HomeBottomNavBar(),
+//   factory Banner.fromJson(Map<String, dynamic> json) {
+//     String imageName = json['gambar_banner'].toString();
+//     String imageUrl = 'https://app.aag4u.co.id/public/image/banner/$imageName';
+//     return Banner(
+//       gambar_banner: imageUrl,
 //     );
 //   }
 // }
 
-import 'dart:convert';
+// class ChatPage extends StatefulWidget {
+//   @override
+//   _ChatPageState createState() => _ChatPageState();
+// }
 
-import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:http/http.dart' as http;
-import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:shimmer/shimmer.dart';
+// class _ChatPageState extends State<ChatPage> {
+//   late Future<List<Map<String, dynamic>>> _hiveData;
 
-class Banner {
-  final String gambar_banner;
+//   @override
+//   void initState() {
+//     super.initState();
+//     _hiveData = _fetchHiveData();
+//   }
 
-  Banner({required this.gambar_banner});
+//   Future<List<Banner>> fetchBanner() async {
+//     var box = await Hive.openBox('bannerBox');
+//     bool isConnected = await InternetConnectionChecker().hasConnection;
 
-  factory Banner.fromJson(Map<String, dynamic> json) {
-    String imageName = json['gambar_banner'].toString();
-    String imageUrl = 'https://app.aag4u.co.id/public/image/banner/$imageName';
-    return Banner(
-      gambar_banner: imageUrl,
-    );
-  }
-}
+//     if (isConnected) {
+//       // Fetch data from API if internet is available
+//       print('Fetching data from API');
+//       final response =
+//           await http.get(Uri.parse('https://app.aag4u.co.id/api/getBanner'));
 
-class ChatPage extends StatefulWidget {
-  @override
-  _ChatPageState createState() => _ChatPageState();
-}
+//       if (response.statusCode == 200) {
+//         List jsonResponse = json.decode(response.body);
+//         List<Banner> banners =
+//             jsonResponse.map((data) => Banner.fromJson(data)).toList();
 
-class _ChatPageState extends State<ChatPage> {
-  late Future<List<Map<String, dynamic>>> _hiveData;
+//         // Buat list untuk menyimpan image names dari API
+//         List<String> apiImageNames = [];
 
-  @override
-  void initState() {
-    super.initState();
-    _hiveData = _fetchHiveData();
-  }
+//         // Iterate over banners to check and update if necessary
+//         for (var banner in banners) {
+//           String imageName = banner.gambar_banner.split('/').last;
+//           apiImageNames.add(imageName);
 
-  Future<List<Banner>> fetchBanner() async {
-    var box = await Hive.openBox('bannerBox');
-    bool isConnected = await InternetConnectionChecker().hasConnection;
+//           // Periksa apakah gambar sudah ada di Hive
+//           String? storedBase64Image = box.get(imageName);
 
-    if (isConnected) {
-      // Fetch data from API if internet is available
-      print('Fetching data from API');
-      final response =
-          await http.get(Uri.parse('https://app.aag4u.co.id/api/getBanner'));
+//           // Ambil gambar terbaru sebagai base64 dari API
+//           String? newBase64Image =
+//               await fetchImageAsBase64(banner.gambar_banner);
 
-      if (response.statusCode == 200) {
-        List jsonResponse = json.decode(response.body);
-        List<Banner> banners =
-            jsonResponse.map((data) => Banner.fromJson(data)).toList();
+//           // Jika gambar dari API tidak sama dengan yang ada di Hive, atau hilang, perbarui Hive
+//           if (newBase64Image != null && newBase64Image != storedBase64Image) {
+//             await box.put(imageName, newBase64Image);
+//             print('Hive updated for $imageName');
+//           }
+//         }
 
-        // Buat list untuk menyimpan image names dari API
-        List<String> apiImageNames = [];
+//         // Hapus data di Hive yang tidak ada di API
+//         List<String> hiveKeys = box.keys.cast<String>().toList();
+//         for (String hiveKey in hiveKeys) {
+//           if (!apiImageNames.contains(hiveKey)) {
+//             await box.delete(hiveKey);
+//             print('Removed $hiveKey from Hive');
+//           }
+//         }
 
-        // Iterate over banners to check and update if necessary
-        for (var banner in banners) {
-          String imageName = banner.gambar_banner.split('/').last;
-          apiImageNames.add(imageName);
+//         // Mengambil semua data dari Hive setelah pembaruan
+//         List<Banner> updatedBanners = [];
+//         for (var key in box.keys) {
+//           String base64Image = box.get(key);
+//           String imageUrl =
+//               'https://app.aag4u.co.id/public/image/banner/$key'; // Construct the image URL based on the image name
 
-          // Periksa apakah gambar sudah ada di Hive
-          String? storedBase64Image = box.get(imageName);
+//           // Create a Banner object with imageUrl
+//           updatedBanners.add(Banner(gambar_banner: imageUrl));
+//         }
 
-          // Ambil gambar terbaru sebagai base64 dari API
-          String? newBase64Image =
-              await fetchImageAsBase64(banner.gambar_banner);
+//         // Return the latest banners in reverse order (newest on top)
+//         return updatedBanners.reversed.toList();
+//       } else {
+//         throw Exception('Failed to fetch data from API');
+//       }
+//     } else {
+//       // No internet: fetch data from Hive
+//       print('No internet, fetching data from Hive');
+//       List<Banner> banners = [];
 
-          // Jika gambar dari API tidak sama dengan yang ada di Hive, atau hilang, perbarui Hive
-          if (newBase64Image != null && newBase64Image != storedBase64Image) {
-            await box.put(imageName, newBase64Image);
-            print('Hive updated for $imageName');
-          }
-        }
+//       // Iterate over the Hive box and reconstruct Banner objects
+//       for (var key in box.keys) {
+//         String base64Image = box.get(key);
+//         String imageUrl =
+//             'https://app.aag4u.co.id/public/image/banner/$key'; // Construct the image URL based on the image name
 
-        // Hapus data di Hive yang tidak ada di API
-        List<String> hiveKeys = box.keys.cast<String>().toList();
-        for (String hiveKey in hiveKeys) {
-          if (!apiImageNames.contains(hiveKey)) {
-            await box.delete(hiveKey);
-            print('Removed $hiveKey from Hive');
-          }
-        }
+//         // Create a Banner object with imageUrl
+//         banners.add(Banner(gambar_banner: imageUrl));
+//       }
 
-        // Mengambil semua data dari Hive setelah pembaruan
-        List<Banner> updatedBanners = [];
-        for (var key in box.keys) {
-          String base64Image = box.get(key);
-          String imageUrl =
-              'https://app.aag4u.co.id/public/image/banner/$key'; // Construct the image URL based on the image name
+//       // Return data from Hive in reverse order (newest on top)
+//       return banners.reversed.toList();
+//     }
+//   }
 
-          // Create a Banner object with imageUrl
-          updatedBanners.add(Banner(gambar_banner: imageUrl));
-        }
+// // Fungsi untuk mengambil gambar sebagai base64
+//   Future<String?> fetchImageAsBase64(String imageUrl) async {
+//     final response = await http.get(Uri.parse(imageUrl));
+//     if (response.statusCode == 200) {
+//       // Mengonversi byte dari response body ke base64
+//       return base64Encode(response.bodyBytes);
+//     }
+//     return null;
+//   }
 
-        // Return the latest banners in reverse order (newest on top)
-        return updatedBanners.reversed.toList();
-      } else {
-        throw Exception('Failed to fetch data from API');
-      }
-    } else {
-      // No internet: fetch data from Hive
-      print('No internet, fetching data from Hive');
-      List<Banner> banners = [];
+//   Future<void> _refreshData() async {
+//     // Refresh data dengan mengambil data dari API dan mengupdate Hive
+//     List<Banner> updatedData = await fetchBanner();
 
-      // Iterate over the Hive box and reconstruct Banner objects
-      for (var key in box.keys) {
-        String base64Image = box.get(key);
-        String imageUrl =
-            'https://app.aag4u.co.id/public/image/banner/$key'; // Construct the image URL based on the image name
+//     // Set state untuk memperbarui tampilan dengan data terbaru
+//     setState(() {
+//       _hiveData = _fetchHiveData();
+//     });
+//   }
 
-        // Create a Banner object with imageUrl
-        banners.add(Banner(gambar_banner: imageUrl));
-      }
+//   Future<List<Map<String, dynamic>>> _fetchHiveData() async {
+//     var box = await Hive.openBox('bannerBox');
+//     List<Map<String, dynamic>> hiveData = [];
 
-      // Return data from Hive in reverse order (newest on top)
-      return banners.reversed.toList();
-    }
-  }
+//     for (var key in box.keys) {
+//       String base64Image = box.get(key);
+//       hiveData.add({
+//         'imageName': key,
+//         'base64Image': base64Image,
+//       });
+//     }
 
-// Fungsi untuk mengambil gambar sebagai base64
-  Future<String?> fetchImageAsBase64(String imageUrl) async {
-    final response = await http.get(Uri.parse(imageUrl));
-    if (response.statusCode == 200) {
-      // Mengonversi byte dari response body ke base64
-      return base64Encode(response.bodyBytes);
-    }
-    return null;
-  }
+//     // Membalik urutan data dari Hive agar yang terbaru ada di atas
+//     return hiveData.reversed.toList();
+//   }
 
-  Future<void> _refreshData() async {
-    // Refresh data dengan mengambil data dari API dan mengupdate Hive
-    List<Banner> updatedData = await fetchBanner();
+// // Tampilkan semua data dari Hive box dalam widget
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Chat Page'),
+//         actions: [
+//           IconButton(
+//             icon: Icon(Icons.refresh),
+//             onPressed: () async {
+//               // Saat tombol refresh ditekan, ambil data terbaru dari API
+//               List<Banner> newData =
+//                   await fetchBanner(); // Ambil data terbaru dari internet jika ada
+//               setState(() {
+//                 _hiveData =
+//                     _fetchHiveData(); // Perbarui tampilan dengan data terbaru dari Hive
+//               });
+//             },
+//           ),
+//         ],
+//       ),
+//       body: FutureBuilder<List<Map<String, dynamic>>>(
+//         future: _hiveData,
+//         builder: (context, snapshot) {
+//           if (snapshot.connectionState == ConnectionState.waiting) {
+//             return buildShimmer(); // Menampilkan loading
+//           } else if (snapshot.hasError) {
+//             return Text('Error: ${snapshot.error}');
+//           } else if (!snapshot.hasData || (snapshot.data!.isEmpty)) {
+//             return Text('No data available');
+//           } else {
+//             List<Map<String, dynamic>> hiveData = snapshot.data!;
 
-    // Set state untuk memperbarui tampilan dengan data terbaru
-    setState(() {
-      _hiveData = _fetchHiveData();
-    });
-  }
+//             return RefreshIndicator(
+//               onRefresh: () async {
+//                 // Refresh data dengan mengambil data dari API
+//                 List<Banner> newData =
+//                     await fetchBanner(); // Ambil data terbaru dari internet jika ada
+//                 setState(() {
+//                   _hiveData =
+//                       _fetchHiveData(); // Perbarui tampilan dengan data terbaru dari Hive
+//                 });
+//               },
+//               child: ListView.builder(
+//                 itemCount: hiveData.length,
+//                 itemBuilder: (context, index) {
+//                   String base64Image = hiveData[index]['base64Image'];
 
-  Future<List<Map<String, dynamic>>> _fetchHiveData() async {
-    var box = await Hive.openBox('bannerBox');
-    List<Map<String, dynamic>> hiveData = [];
+//                   return Card(
+//                     child: Column(
+//                       children: [
+//                         base64Image.isNotEmpty
+//                             ? Image.memory(base64Decode(
+//                                 base64Image)) // Menampilkan gambar dari base64
+//                             : Container(), // Jika gambar kosong
+//                       ],
+//                     ),
+//                   );
+//                 },
+//               ),
+//             );
+//           }
+//         },
+//       ),
+//     );
+//   }
 
-    for (var key in box.keys) {
-      String base64Image = box.get(key);
-      hiveData.add({
-        'imageName': key,
-        'base64Image': base64Image,
-      });
-    }
-
-    // Membalik urutan data dari Hive agar yang terbaru ada di atas
-    return hiveData.reversed.toList();
-  }
-
-// Tampilkan semua data dari Hive box dalam widget
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Chat Page'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: () async {
-              // Saat tombol refresh ditekan, ambil data terbaru dari API
-              List<Banner> newData =
-                  await fetchBanner(); // Ambil data terbaru dari internet jika ada
-              setState(() {
-                _hiveData =
-                    _fetchHiveData(); // Perbarui tampilan dengan data terbaru dari Hive
-              });
-            },
-          ),
-        ],
-      ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _hiveData,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return buildShimmer(); // Menampilkan loading
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else if (!snapshot.hasData || (snapshot.data!.isEmpty)) {
-            return Text('No data available');
-          } else {
-            List<Map<String, dynamic>> hiveData = snapshot.data!;
-
-            return RefreshIndicator(
-              onRefresh: () async {
-                // Refresh data dengan mengambil data dari API
-                List<Banner> newData =
-                    await fetchBanner(); // Ambil data terbaru dari internet jika ada
-                setState(() {
-                  _hiveData =
-                      _fetchHiveData(); // Perbarui tampilan dengan data terbaru dari Hive
-                });
-              },
-              child: ListView.builder(
-                itemCount: hiveData.length,
-                itemBuilder: (context, index) {
-                  String base64Image = hiveData[index]['base64Image'];
-
-                  return Card(
-                    child: Column(
-                      children: [
-                        base64Image.isNotEmpty
-                            ? Image.memory(base64Decode(
-                                base64Image)) // Menampilkan gambar dari base64
-                            : Container(), // Jika gambar kosong
-                      ],
-                    ),
-                  );
-                },
-              ),
-            );
-          }
-        },
-      ),
-    );
-  }
-
-  Widget buildShimmer() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Shimmer.fromColors(
-            baseColor: Colors.grey[300]!,
-            highlightColor: Colors.grey[100]!,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: 200,
-              color: Colors.white,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                height: 24,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                height: 16,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(
-                height: 16,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+//   Widget buildShimmer() {
+//     return SingleChildScrollView(
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Shimmer.fromColors(
+//             baseColor: Colors.grey[300]!,
+//             highlightColor: Colors.grey[100]!,
+//             child: Container(
+//               width: MediaQuery.of(context).size.width,
+//               height: 200,
+//               color: Colors.white,
+//             ),
+//           ),
+//           Padding(
+//             padding: const EdgeInsets.all(8.0),
+//             child: Shimmer.fromColors(
+//               baseColor: Colors.grey[300]!,
+//               highlightColor: Colors.grey[100]!,
+//               child: Container(
+//                 height: 24,
+//                 color: Colors.white,
+//               ),
+//             ),
+//           ),
+//           Padding(
+//             padding: const EdgeInsets.all(8.0),
+//             child: Shimmer.fromColors(
+//               baseColor: Colors.grey[300]!,
+//               highlightColor: Colors.grey[100]!,
+//               child: Container(
+//                 height: 16,
+//                 color: Colors.white,
+//               ),
+//             ),
+//           ),
+//           Padding(
+//             padding: const EdgeInsets.all(8.0),
+//             child: Shimmer.fromColors(
+//               baseColor: Colors.grey[300]!,
+//               highlightColor: Colors.grey[100]!,
+//               child: Container(
+//                 height: 16,
+//                 color: Colors.white,
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }

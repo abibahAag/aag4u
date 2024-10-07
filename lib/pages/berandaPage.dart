@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Blog/BlogPage.dart';
 import 'package:flutter_aag4u/Menu_Permintaan_Survey/pages/simulasihargaPage.dart';
 import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
+import 'package:flutter_aag4u/pages/profilePage.dart';
 import 'package:flutter_aag4u/template/navbar.dart';
 import 'package:flutter_aag4u/widgets/BannerWidget.dart';
 import 'package:flutter_aag4u/widgets/BlogWidget.dart';
 import 'package:flutter_aag4u/widgets/TestimoniWidget.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 // import 'package:flutter_aag4u/widgets/HomeBottomNavBar.dart';
 
 class berandaPage extends StatefulWidget {
@@ -34,6 +36,13 @@ class _berandaPage extends State<berandaPage> {
 
     if (data is NotificationResponse) {
       payload = jsonDecode(data.payload!);
+    }
+
+    Future<bool> checkLoginStatus() async {
+      var loginBox = await Hive.openBox('loginBox');
+      // Mengambil status 'isLoggedIn' dari Hive, default-nya false jika tidak ada data
+      bool isLoggedIn = loginBox.get('isLoggedIn', defaultValue: false);
+      return isLoggedIn;
     }
 
     return Scaffold(
@@ -138,35 +147,86 @@ class _berandaPage extends State<berandaPage> {
                                           Row(
                                             children: [
                                               Container(
-                                                width: 50,
-                                                height: 50,
-                                                decoration: BoxDecoration(
-                                                    // color: Color(0xFFcddcff),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10)),
-                                                child: InkWell(
-                                                  onTap: () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              SimulasiHargaPage()),
-                                                    );
-                                                  },
-                                                  child: Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      Container(
+                                                  width: 50,
+                                                  height: 50,
+                                                  decoration: BoxDecoration(
+                                                      // color: Color(0xFFcddcff),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10)),
+                                                  child: InkWell(
+                                                    onTap: () async {
+                                                      // Memeriksa status login dari Hive, menunggu hasil dari fungsi async
+                                                      bool isLoggedIn =
+                                                          await checkLoginStatus();
+
+                                                      if (isLoggedIn) {
+                                                        // Jika sudah login, arahkan ke halaman SimulasiHargaPage
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                SimulasiHargaPage(
+                                                              isRegistered:
+                                                                  true,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      } else {
+                                                        // Tampilkan alert jika belum login
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (BuildContext
+                                                              context) {
+                                                            return AlertDialog(
+                                                              title:
+                                                                  Text('Info'),
+                                                              content: Text(
+                                                                  'Harap login terlebih dahulu'),
+                                                              actions: <Widget>[
+                                                                TextButton(
+                                                                  child: Text(
+                                                                      'OK'),
+                                                                  onPressed:
+                                                                      () {
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop(); // Menutup dialog
+                                                                    // Arahkan ke halaman login setelah menutup dialog
+                                                                    Navigator
+                                                                        .push(
+                                                                      context,
+                                                                      MaterialPageRoute(
+                                                                        builder:
+                                                                            (context) =>
+                                                                                ProfilePage(
+                                                                          isRegistered:
+                                                                              false,
+                                                                          login:
+                                                                              false,
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      }
+                                                    },
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Container(
                                                           child: Image.asset(
-                                                              "images/icons/simulasi.png")),
-                                                      // const SizedBox(height: 5,),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
+                                                              "images/icons/simulasi.png"),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )),
                                             ],
                                           ),
                                           Row(

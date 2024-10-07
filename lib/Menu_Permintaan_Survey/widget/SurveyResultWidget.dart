@@ -720,6 +720,26 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
     }
   }
 
+  String formatTanggal(String inputDate) {
+    // Parse tanggal dari format string 'yyyy-MM-dd'
+    DateTime dateTime = DateTime.parse(inputDate);
+
+    // Format tanggal ke 'dd MMM yyyy'
+    String formattedDate = DateFormat('dd MMM yyyy').format(dateTime);
+
+    return formattedDate;
+  }
+
+  String formatTime(String inputTime) {
+    // Parse string time '15:30:00' ke DateTime
+    DateTime dateTime = DateFormat('HH:mm:ss').parse(inputTime);
+
+    // Format waktu ke 'HH:mm'
+    String formattedTime = DateFormat('HH:00').format(dateTime);
+
+    return formattedTime;
+  }
+
   // void main() {
   //   String isoDate = ({surveyData['wa'] ?? 'N/A'});
 
@@ -818,6 +838,58 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                   ),
                                   Column(
                                     children: [
+                                      // FutureBuilder<Map<String, dynamic>>(
+                                      //   future: _fetchSurveyData(),
+                                      //   builder: (context, snapshot) {
+                                      //     if (snapshot.connectionState ==
+                                      //         ConnectionState.waiting) {
+                                      //       return Center(
+                                      //           child:
+                                      //               CircularProgressIndicator());
+                                      //     } else if (snapshot.hasError) {
+                                      //       return Center(
+                                      //           child: Text(
+                                      //               'Error: ${snapshot.error}'));
+                                      //     } else if (snapshot.hasData) {
+                                      //       final data = snapshot.data!;
+                                      //       final surveyData = data['survey']
+                                      //           as Map<String, dynamic>;
+
+                                      //       final hama_lainnya =
+                                      //           surveyData['hama_lainnya']
+                                      //               ;
+
+                                      //       final surveyhama =
+                                      //           data['hama'] as List<dynamic>;
+
+                                      //       final hamaNames = surveyhama
+                                      //           .map((hama) =>
+                                      //               (hama as Map<String,
+                                      //                       dynamic>)[
+                                      //                   'nama_hama'] ??
+                                      //               'No name')
+                                      //           .join(', ');
+
+                                      //       String _formatDateTimeToOriginal(
+                                      //           String dateTime) {
+                                      //         if (dateTime == 'N/A')
+                                      //           return 'N/A';
+
+                                      //         // Parse the string to DateTime
+                                      //         DateTime parsedDate =
+                                      //             DateTime.parse(dateTime)
+                                      //                 .toUtc()
+                                      //                 .add(Duration(hours: 7));
+
+                                      //         // Format the date and time to original format
+                                      //         String formattedDateTime =
+                                      //             DateFormat(
+                                      //                     'yyyy-MM-dd HH:mm:ss')
+                                      //                 .format(parsedDate);
+
+                                      //         return formattedDateTime;
+                                      //       }
+
                                       FutureBuilder<Map<String, dynamic>>(
                                         future: _fetchSurveyData(),
                                         builder: (context, snapshot) {
@@ -834,9 +906,14 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                             final data = snapshot.data!;
                                             final surveyData = data['survey']
                                                 as Map<String, dynamic>;
+
+                                            final hama_lainnya =
+                                                surveyData['hama_lainnya']
+                                                    as String?;
                                             final surveyhama =
                                                 data['hama'] as List<dynamic>;
 
+                                            // Get the hama names from the list
                                             final hamaNames = surveyhama
                                                 .map((hama) =>
                                                     (hama as Map<String,
@@ -845,18 +922,36 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                     'No name')
                                                 .join(', ');
 
+                                            // Handle the conditions for displaying hama names and hama_lainnya
+                                            String displayHamaData() {
+                                              if (hamaNames.isNotEmpty &&
+                                                  (hama_lainnya?.isNotEmpty ??
+                                                      false)) {
+                                                // Both hamaNames and hama_lainnya have values
+                                                return '$hamaNames, $hama_lainnya';
+                                              } else if (hamaNames.isNotEmpty &&
+                                                  (hama_lainnya?.isEmpty ??
+                                                      true)) {
+                                                // Only hamaNames has a value
+                                                return hamaNames;
+                                              } else if (hamaNames.isEmpty &&
+                                                  (hama_lainnya?.isNotEmpty ??
+                                                      false)) {
+                                                // Only hama_lainnya has a value
+                                                return hama_lainnya!;
+                                              }
+                                              return 'No data available';
+                                            }
+
                                             String _formatDateTimeToOriginal(
                                                 String dateTime) {
                                               if (dateTime == 'N/A')
                                                 return 'N/A';
 
-                                              // Parse the string to DateTime
                                               DateTime parsedDate =
                                                   DateTime.parse(dateTime)
                                                       .toUtc()
                                                       .add(Duration(hours: 7));
-
-                                              // Format the date and time to original format
                                               String formattedDateTime =
                                                   DateFormat(
                                                           'yyyy-MM-dd HH:mm:ss')
@@ -1027,6 +1122,100 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                                                                               ),
                                                                                                                                             ],
                                                                                                                                           ),
+                                                                                                                                          // Row(
+                                                                                                                                          //   children: [
+                                                                                                                                          //     Padding(
+                                                                                                                                          //       padding: const EdgeInsets.only(top: 5, left: 0),
+                                                                                                                                          //       child: Column(
+                                                                                                                                          //         crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                                          //         children: [
+                                                                                                                                          //           // Add some spacing
+                                                                                                                                          //           Container(
+                                                                                                                                          //             width: inWidth,
+                                                                                                                                          //             // color: Colors.blue,
+                                                                                                                                          //             child: Text(
+                                                                                                                                          //               hamaNames.isNotEmpty ? hamaNames : 'No data',
+                                                                                                                                          //               // overflow: TextOverflow.clip,
+                                                                                                                                          //               style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 7, 10, 113), fontWeight: FontWeight.bold),
+                                                                                                                                          //               maxLines: 3,
+                                                                                                                                          //               overflow: TextOverflow.visible,
+                                                                                                                                          //               softWrap: true,
+                                                                                                                                          //             ),
+                                                                                                                                          //           ),
+                                                                                                                                          //         ],
+                                                                                                                                          //       ),
+                                                                                                                                          //     ),
+                                                                                                                                          //   ],
+                                                                                                                                          // ),
+                                                                                                                                          Row(
+                                                                                                                                            children: [
+                                                                                                                                              Padding(
+                                                                                                                                                padding: const EdgeInsets.only(top: 5, left: 0),
+                                                                                                                                                child: Column(
+                                                                                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                                                  children: [
+                                                                                                                                                    // Add some spacing
+                                                                                                                                                    Container(
+                                                                                                                                                      width: inWidth,
+                                                                                                                                                      child: Column(
+                                                                                                                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                                                        children: [
+                                                                                                                                                          Text(
+                                                                                                                                                            displayHamaData(),
+                                                                                                                                                            style: TextStyle(
+                                                                                                                                                              fontSize: 14,
+                                                                                                                                                              color: Color.fromARGB(255, 7, 10, 113),
+                                                                                                                                                              fontWeight: FontWeight.bold,
+                                                                                                                                                            ),
+                                                                                                                                                            maxLines: 3,
+                                                                                                                                                            overflow: TextOverflow.visible,
+                                                                                                                                                            softWrap: true,
+                                                                                                                                                          ),
+                                                                                                                                                        ],
+                                                                                                                                                      ),
+                                                                                                                                                    ),
+                                                                                                                                                  ],
+                                                                                                                                                ),
+                                                                                                                                              ),
+                                                                                                                                            ],
+                                                                                                                                          ),
+                                                                                                                                        ],
+                                                                                                                                      ),
+                                                                                                                                    ),
+                                                                                                                                  ),
+                                                                                                                                ],
+                                                                                                                              ),
+                                                                                                                            ],
+                                                                                                                          ),
+                                                                                                                          SizedBox(
+                                                                                                                            height: 20,
+                                                                                                                          ),
+                                                                                                                          Row(
+                                                                                                                            mainAxisAlignment: MainAxisAlignment.start,
+                                                                                                                            children: [
+                                                                                                                              Column(
+                                                                                                                                // crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                                children: [
+                                                                                                                                  Container(
+                                                                                                                                    // color: Colors.blue,
+                                                                                                                                    width: inWidth,
+                                                                                                                                    child: Padding(
+                                                                                                                                      padding: const EdgeInsets.only(
+                                                                                                                                        top: 10,
+                                                                                                                                      ),
+                                                                                                                                      child: Column(
+                                                                                                                                        // mainAxisAlignment: MainAxisAlignment.start,
+                                                                                                                                        children: [
+                                                                                                                                          Row(
+                                                                                                                                            children: [
+                                                                                                                                              Container(
+                                                                                                                                                child: Text(
+                                                                                                                                                  'PERMINTAAN SURVEY',
+                                                                                                                                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                                                                                                                                ),
+                                                                                                                                              ),
+                                                                                                                                            ],
+                                                                                                                                          ),
                                                                                                                                           Row(
                                                                                                                                             children: [
                                                                                                                                               Padding(
@@ -1038,13 +1227,26 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                                                                                     Container(
                                                                                                                                                       width: inWidth,
                                                                                                                                                       // color: Colors.blue,
-                                                                                                                                                      child: Text(
-                                                                                                                                                        hamaNames.isNotEmpty ? hamaNames : 'No data',
-                                                                                                                                                        // overflow: TextOverflow.clip,
-                                                                                                                                                        style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 7, 10, 113), fontWeight: FontWeight.bold),
-                                                                                                                                                        maxLines: 3,
-                                                                                                                                                        overflow: TextOverflow.visible,
-                                                                                                                                                        softWrap: true,
+                                                                                                                                                      child: Row(
+                                                                                                                                                        children: [
+                                                                                                                                                          Text(
+                                                                                                                                                            surveyData['jadwal'] != null && surveyData['jadwal'].isNotEmpty ? formatTanggal(surveyData['jadwal']) : 'N/A',
+                                                                                                                                                            overflow: TextOverflow.clip,
+                                                                                                                                                            style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 7, 10, 113), fontWeight: FontWeight.bold),
+                                                                                                                                                          ),
+                                                                                                                                                          Text(' - '),
+                                                                                                                                                          Text(
+                                                                                                                                                            surveyData['jam'] != null && surveyData['jam'].isNotEmpty
+                                                                                                                                                                ? DateFormat.Hm().format(DateTime.parse('${surveyData['jadwal']} ${surveyData['jam']}')) // Parse and format
+                                                                                                                                                                : 'N/A',
+                                                                                                                                                            overflow: TextOverflow.clip,
+                                                                                                                                                            style: TextStyle(
+                                                                                                                                                              fontSize: 14,
+                                                                                                                                                              color: Color.fromARGB(255, 7, 10, 113),
+                                                                                                                                                              fontWeight: FontWeight.bold,
+                                                                                                                                                            ),
+                                                                                                                                                          ),
+                                                                                                                                                        ],
                                                                                                                                                       ),
                                                                                                                                                     ),
                                                                                                                                                   ],
@@ -1404,6 +1606,18 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
     );
   }
 }
+
+// String _generateHamaDisplayText(String hamaNames, String hama_lainnya) {
+//   if (hama_lainnya != null && hamaNames == null) {
+//     return ' $hama_lainnya';
+//   } else if (hamaNames != null && hama_lainnya == null) {
+//     return ' $hamaNames ++';
+//   } else if (hamaNames != null && hama_lainnya != null) {
+//     return ' $hamaNames, $hama_lainnya';
+//   } else {
+//     return 'No hama data available.';
+//   }
+// }
 
 class TsClip2 extends CustomClipper<Path> {
   @override

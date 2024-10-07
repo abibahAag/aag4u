@@ -12,13 +12,11 @@ import 'package:flutter_aag4u/controller/pushnotificationController.dart';
 import 'package:flutter_aag4u/pages/SplashScreenPage.dart';
 import 'package:flutter_aag4u/pages/berandaPage.dart';
 import 'package:flutter_aag4u/pages/chatPage.dart';
-import 'package:flutter_aag4u/pages/homepage.dart';
 // import 'package:flutter_aag4u/pages/promoPage.dart';
 import 'package:flutter_aag4u/pages/surveyPage.dart';
 import 'package:flutter_aag4u/services/local_notifications.dart';
-import 'package:flutter_aag4u/widgets/PekerjaanWidget.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'firebase_options.dart';
 
@@ -44,7 +42,6 @@ Future<void> _backgroundMessageHandler(RemoteMessage message) async {
 GoogleSignIn _googleSignIn = GoogleSignIn(
   scopes: <String>['email'],
 );
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -77,10 +74,9 @@ void main() async {
   }
 
   /// untuk menyimpan data login ke dalam hive box
-    WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox('loginBox'); // Buka Hive box untuk menyimpan data login
-  
 
 //   await Firebase.initializeApp();
 //   await NotificationController.initializeLocalNotifications();
@@ -151,7 +147,7 @@ class _MyAppState extends State<MyApp> {
       navigatorKey: nevegatorkey,
       routes: {
         "/": (context) => SplashScreenPage(),
-        "homePage": (context) => homePage(isRegistered: false, isLoggedIn: false),
+        // "homePage": (context) => homePage(isRegistered: false, isLoggedIn: false),
         "BerandaPage": (context) => berandaPage(),
         "surveyPage": (context) => SurveyPage(),
         "promoPage": (context) => promoPage(),
