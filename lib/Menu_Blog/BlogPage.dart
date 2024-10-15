@@ -1,26 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Blog/MenuBlogWidget.dart';
-import 'package:http/http.dart' as http;
-
-class Blog {
-  final int id;
-  final String title;
-  final String photo;
-
-  Blog({required this.id, required this.title, required this.photo});
-
-  factory Blog.fromJson(Map<String, dynamic> json) {
-    String imageName = json['photo'];
-    String imageUrl = 'https://app.aag4u.co.id/public/image/blog/$imageName';
-    return Blog(
-      id: json['id'],
-      title: json['title'],
-      photo: imageUrl,
-    );
-  }
-}
 
 class BlogPage extends StatefulWidget {
   const BlogPage({super.key});
@@ -30,34 +9,12 @@ class BlogPage extends StatefulWidget {
 }
 
 class _BlogPageState extends State<BlogPage> {
-  Future<List<Blog>>? futureBlog;
-
-  @override
-  void initState() {
-    super.initState();
-    futureBlog = fetchBlog();
-  }
-
-  Future<List<Blog>> fetchBlog() async {
-    final response =
-        await http.get(Uri.parse('http://www.app.aag4u.co.id/api/getPost'));
-
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      return jsonResponse.map((data) => Blog.fromJson(data)).toList();
-    } else {
-      throw Exception('Failed to load blog posts');
-    }
-  }
-  // Map payload = {};
-
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width * 0.9;
 
     return Scaffold(
-      appBar: AppBar(automaticallyImplyLeading: true, 
-      actions: <Widget>[
+      appBar: AppBar(automaticallyImplyLeading: true, actions: <Widget>[
         Container(
           // color: Colors.amber,
           width: screenWidth,
@@ -93,8 +50,7 @@ class _BlogPageState extends State<BlogPage> {
             ],
           ),
         ),
-      ]
-      ),
+      ]),
       body: SafeArea(
           child: SingleChildScrollView(
         child: Column(

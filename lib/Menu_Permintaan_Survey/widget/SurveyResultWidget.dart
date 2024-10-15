@@ -774,7 +774,7 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
             // color: Color.fromARGB(255, 18, 213, 70),
             // color: Colors.blue,
             width: 400,
-            height: 800,
+            height: 900,
             // decoration: BoxDecoration(
             //     // color: Color.fromARGB(255, 18, 213, 70),
             //     ),
@@ -998,8 +998,9 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                       clipper: TsClip3(),
                                                                                       child: Container(
                                                                                         width: containerWidth,
-                                                                                        height: 600,
+                                                                                        height: 650,
                                                                                         color: Color.fromARGB(255, 255, 255, 255),
+                                                                                        // color: Color.fromARGB(255, 222, 26, 26),
                                                                                         child: Column(
                                                                                           children: [
                                                                                             Row(
@@ -1009,7 +1010,7 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                                   child: Container(
                                                                                                     // color: Colors.amber,
                                                                                                     width: containerWidth,
-                                                                                                    height: 570,
+                                                                                                    height: 600,
                                                                                                     child: Stack(
                                                                                                       children: [
                                                                                                         Row(
@@ -1510,7 +1511,7 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                                                             ],
                                                                                                                           ),
                                                                                                                           SizedBox(
-                                                                                                                            height: 30,
+                                                                                                                            height: 50,
                                                                                                                           ),
                                                                                                                           Row(
                                                                                                                             // mainAxisAlignment: MainAxisAlignment.end,

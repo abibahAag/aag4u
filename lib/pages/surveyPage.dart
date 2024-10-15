@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -7,14 +8,62 @@ import 'package:flutter_aag4u/pages/pdfView.dart';
 import 'package:flutter_aag4u/plugins/zoombuttons_plugin.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
 
 class SurveyPage extends StatelessWidget {
   const SurveyPage({super.key});
-  // final String? url; // URL bisa opsional, dengan default null
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: ProgresTab(),
+    );
+  }
+}
 
-  // SurveyPage({this.url});
+class ProgresTab extends StatefulWidget {
+  @override
+  _ProgresTabState createState() => _ProgresTabState();
+}
+
+class _ProgresTabState extends State<ProgresTab> {
+  List<dynamic> requestData = [];
+  List<dynamic> surveyData = [];
+  List<dynamic> offerData = [];
+  List<dynamic> dealData = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  Future<void> fetchData() async {
+    try {
+      var box = await Hive.openBox('loginBox');
+      var email = box.get('email');
+
+      final requestResponse = await http
+          .get(Uri.parse('https://app.aag4u.co.id/api/getProgres/1/$email'));
+      // if (requestResponse == 200) {
+      setState(() {
+        requestData = json.decode(requestResponse.body);
+      });
+      isLoading = false;
+      // } else {
+      //   throw Exception('Failed to load data');
+      // }
+    } catch (e) {
+      print('Error: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   // _PdfViewerPageState createState() => _PdfViewerPageState();
@@ -34,14 +83,16 @@ class SurveyPage extends StatelessWidget {
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            RequestTab(),
-            SurveyTab(),
-            OfferTab(),
-            DealTab(),
-          ],
-        ),
+        body: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : TabBarView(
+                children: [
+                  RequestTab(requestData: requestData),
+                  SurveyTab(),
+                  OfferTab(),
+                  DealTab(),
+                ],
+              ),
       ),
     );
   }
@@ -117,51 +168,74 @@ class _PdfViewerPageState extends State<PdfView> {
 
 /// Start Code RequestTab ///
 
-class RequestTab extends StatefulWidget {
-  @override
-  State<RequestTab> createState() => _RequestTabState();
-}
+class RequestTab extends StatelessWidget {
+  final List<dynamic> requestData;
+  // State<RequestTab> createState() => _RequestTabState();
+  RequestTab({required this.requestData});
 
-class _RequestTabState extends State<RequestTab> {
-  final String productName = "Kecoa,Lalat,Semut";
+  // final String productName = "Kecoa,Lalat,Semut";
 
-  final DateTime purchaseDate = DateTime(2024, 9, 1);
+  // final DateTime purchaseDate = DateTime(2024, 9, 1);
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListTile(
-            leading: Icon(Icons.file_copy, size: 40, color: Colors.blue),
-            title: Text(
-              productName,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Survey on: ${purchaseDate.day}/${purchaseDate.month}/${purchaseDate.year} - 14:30',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+    return ListView.builder(
+      itemCount: requestData.length,
+      itemBuilder: (context, index) {
+        // Assuming `productName` and `purchaseDate` are part of `requestData`
+        // List<dynamic> hama = requestData[index]['survey_hama'];
+        final hama = requestData[index]['survey_hama'] as List<dynamic>;
+        final hamaNames = hama
+            .map((hama) =>
+                (hama as Map<String, dynamic>)['hama']['nama_hama'] ??
+                'No name')
+            .join(', ');
+        DateTime purchaseDate = DateTime.parse(
+            requestData[index]['jadwal']); // Assuming it's a date string
+
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                leading: Icon(Icons.file_copy, size: 40, color: Colors.blue),
+                title: Text(
+                  hamaNames,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'Jakarta Selatan - DKI Jakarta',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                // title: Column(
+                //   crossAxisAlignment: CrossAxisAlignment.start,
+                //   children: [
+                // Loop through each product file
+                // for (var file in hama)
+                //   Text(
+                //     '${file['hama']['nama_hama']},', // Assuming 'file' is a string, otherwise adjust accordingly
+                //     style: TextStyle(
+                //         fontSize: 14, fontWeight: FontWeight.bold),
+                //   ),
+                //   ],
+                // ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Survey on: ${purchaseDate.day}/${purchaseDate.month}/${purchaseDate.year} - ${requestData[index]['jam']}',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      '${requestData[index]['provinsi']} - ${requestData[index]['kota']}',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              SizedBox(height: 16),
+            ],
           ),
-          SizedBox(height: 16),
-          // Text(
-          //   'Your order is being processed.',
-          //   style: TextStyle(fontSize: 16),
-          // ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

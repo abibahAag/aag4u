@@ -75,7 +75,6 @@ class _promoPageState extends State<promoPage> {
 //       throw Exception('Failed to load Promo posts');
 //     }
 //   }
-
 // // Fungsi untuk mengambil gambar sebagai base64
 //   Future<String?> fetchImageAsBase64(String imageUrl) async {
 //     final response = await http.get(Uri.parse(imageUrl));
@@ -85,15 +84,12 @@ class _promoPageState extends State<promoPage> {
 //     }
 //     return null;
 //   }
-
 //   Future<void> _refreshData() async {
 //     await fetchPromo();
 //     setState(() {});
 //   }
-
 ///////////////
 // late Future<List<Map<String, dynamic>>> _hiveData;
-
 //   @override
 //   void initState() {
 //     super.initState();
@@ -102,66 +98,53 @@ class _promoPageState extends State<promoPage> {
 
 //   Future<List<Promo>> fetchPromo() async {
 //     var box = await Hive.openBox('promoBox');
-
 //     // Cek status koneksi internet
 //     var connectivityResult = await Connectivity().checkConnectivity();
 //     bool isConnected = await InternetConnectionChecker().hasConnection;
-
 //     if (isConnected) {
 //       // Fetch data from API if internet is available
 //       print('Fetching data from API');
 //       final response =
 //           await http.get(Uri.parse('https://app.aag4u.co.id/api/getBanner'));
-
 //       if (response.statusCode == 200) {
 //         List jsonResponse = json.decode(response.body);
 //         List<Promo> promos =
 //             jsonResponse.map((data) => Promo.fromJson(data)).toList();
-
 //         // Iterate over banners to check and update if necessary
 //         for (var promo in promos) {
 //           String imageName = promo.gambar_banner.split('/').last;
-
 //           // Periksa apakah gambar sudah ada di Hive
 //           String? storedBase64Image = box.get(imageName);
-
 //           // Ambil gambar terbaru sebagai base64 dari API
 //           String? newBase64Image =
 //               await fetchImageAsBase64(promo.gambar_banner);
-
 //           // Jika gambar dari API tidak sama dengan yang ada di Hive, atau hilang, perbarui Hive
 //           if (newBase64Image != null && newBase64Image != storedBase64Image) {
 //             await box.put(imageName, newBase64Image);
 //           }
-
 //           // Mengambil semua data dari Hive setelah pembaruan
 //           List<Promo> updatedPromo = [];
 //           for (var key in box.keys) {
 //             String base64Image = box.get(key);
 //             String imageUrl =
 //                 'https://app.aag4u.co.id/public/image/banner/$key'; // Construct the image URL based on the image name
-
 //             // Create a Banner object with imageUrl
 //             updatedPromo.add(Promo(gambar_banner: imageUrl));
 //           }
 //         }
-
 //         // Return the latest banners in reverse order (newest on top)
 //         return promos.reversed.toList();
 //       } else {
 //         // No internet: fetch data from Hive
 //         List<Promo> promos = [];
-
 //         // Iterate over the Hive box and reconstruct Banner objects
 //         for (var key in box.keys) {
 //           String base64Image = box.get(key);
 //           String imageUrl =
 //               'https://app.aag4u.co.id/public/image/banner/$key'; // Construct the image URL based on the image name
-
 //           // Create a Banner object with imageUrl, assuming other fields are unavailable
 //           promos.add(Promo(gambar_banner: imageUrl));
 //         }
-
 //         // Return data from Hive in reverse order (newest on top)
 //         return promos.reversed.toList();
 //       }
@@ -169,22 +152,18 @@ class _promoPageState extends State<promoPage> {
 //       // No internet: fetch data from Hive
 //       print('No internet, fetching data from Hive');
 //       List<Promo> promos = [];
-
 //       // Iterate over the Hive box and reconstruct Banner objects
 //       for (var key in box.keys) {
 //         String base64Image = box.get(key);
 //         String imageUrl =
 //             'https://app.aag4u.co.id/public/image/banner/$key'; // Construct the image URL based on the image name
-
 //         // Create a Banner object with imageUrl, assuming other fields are unavailable
 //         promos.add(Promo(gambar_banner: imageUrl));
 //       }
-
 //       // Return data from Hive in reverse order (newest on top)
 //       return promos.reversed.toList();
 //     }
 //   }
-
 // // Fungsi untuk mengambil gambar sebagai base64
 //   Future<String?> fetchImageAsBase64(String imageUrl) async {
 //     final response = await http.get(Uri.parse(imageUrl));
@@ -239,50 +218,30 @@ class _promoPageState extends State<promoPage> {
         List<Banner> banners =
             jsonResponse.map((data) => Banner.fromJson(data)).toList();
 
-        // Buat list untuk menyimpan image names dari API
+        // Create a list for storing image names from API
         List<String> apiImageNames = [];
 
-        // Iterate over banners to check and update if necessary
+        // Clear the Hive box before updating
+        await box.clear();
+
+        // Iterate over banners to save them in Hive
         for (var banner in banners) {
           String imageName = banner.gambar_banner.split('/').last;
           apiImageNames.add(imageName);
 
-          // Periksa apakah gambar sudah ada di Hive
-          String? storedBase64Image = box.get(imageName);
-
-          // Ambil gambar terbaru sebagai base64 dari API
+          // Fetch new base64 image from API
           String? newBase64Image =
               await fetchImageAsBase64(banner.gambar_banner);
 
-          // Jika gambar dari API tidak sama dengan yang ada di Hive, atau hilang, perbarui Hive
-          if (newBase64Image != null && newBase64Image != storedBase64Image) {
+          // Save the new image in Hive
+          if (newBase64Image != null) {
             await box.put(imageName, newBase64Image);
             print('Hive updated for $imageName');
           }
         }
 
-        // Hapus data di Hive yang tidak ada di API
-        List<String> hiveKeys = box.keys.cast<String>().toList();
-        for (String hiveKey in hiveKeys) {
-          if (!apiImageNames.contains(hiveKey)) {
-            await box.delete(hiveKey);
-            print('Removed $hiveKey from Hive');
-          }
-        }
-
-        // Mengambil semua data dari Hive setelah pembaruan
-        List<Banner> updatedBanners = [];
-        for (var key in box.keys) {
-          String base64Image = box.get(key);
-          String imageUrl =
-              'https://app.aag4u.co.id/public/image/banner/$key'; // Construct the image URL based on the image name
-
-          // Create a Banner object with imageUrl
-          updatedBanners.add(Banner(gambar_banner: imageUrl));
-        }
-
         // Return the latest banners in reverse order (newest on top)
-        return updatedBanners.reversed.toList();
+        return banners.reversed.toList();
       } else {
         throw Exception('Failed to fetch data from API');
       }

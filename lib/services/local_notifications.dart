@@ -1,7 +1,4 @@
-
-
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class LocalNotificationsService {
@@ -28,7 +25,6 @@ class LocalNotificationsService {
         android: AndroidNotificationDetails("com.flutter.AAG4U", "AAG4U",
             importance: Importance.max, priority: Priority.high));
 
-
     //    if (message.notification != null) {
     //   final String? imageUrl = message.notification!.android?.imageUrl;
 
@@ -54,7 +50,7 @@ class LocalNotificationsService {
           notificationDetails);
     }
   }
-  }
+}
 
 
 

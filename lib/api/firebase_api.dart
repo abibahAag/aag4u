@@ -16,6 +16,3 @@ class FirebaseApi {
     // print('Token: $fCMToken');
   }
 }
-
-
-
