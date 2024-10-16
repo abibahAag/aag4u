@@ -774,7 +774,7 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
             // color: Color.fromARGB(255, 18, 213, 70),
             // color: Colors.blue,
             width: 400,
-            height: 800,
+            height: 900,
             // decoration: BoxDecoration(
             //     // color: Color.fromARGB(255, 18, 213, 70),
             //     ),
@@ -998,8 +998,9 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                       clipper: TsClip3(),
                                                                                       child: Container(
                                                                                         width: containerWidth,
-                                                                                        height: 600,
+                                                                                        height: 650,
                                                                                         color: Color.fromARGB(255, 255, 255, 255),
+                                                                                        // color: Color.fromARGB(255, 222, 26, 26),
                                                                                         child: Column(
                                                                                           children: [
                                                                                             Row(
@@ -1009,7 +1010,7 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                                   child: Container(
                                                                                                     // color: Colors.amber,
                                                                                                     width: containerWidth,
-                                                                                                    height: 570,
+                                                                                                    height: 600,
                                                                                                     child: Stack(
                                                                                                       children: [
                                                                                                         Row(
@@ -1245,75 +1246,6 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                                                                                               color: Color.fromARGB(255, 7, 10, 113),
                                                                                                                                                               fontWeight: FontWeight.bold,
                                                                                                                                                             ),
-                                                                                                                                                          ),
-                                                                                                                                                        ],
-                                                                                                                                                      ),
-                                                                                                                                                    ),
-                                                                                                                                                  ],
-                                                                                                                                                ),
-                                                                                                                                              ),
-                                                                                                                                            ],
-                                                                                                                                          ),
-                                                                                                                                        ],
-                                                                                                                                      ),
-                                                                                                                                    ),
-                                                                                                                                  ),
-                                                                                                                                ],
-                                                                                                                              ),
-                                                                                                                            ],
-                                                                                                                          ),
-                                                                                                                          SizedBox(
-                                                                                                                            height: 20,
-                                                                                                                          ),
-                                                                                                                          Row(
-                                                                                                                            mainAxisAlignment: MainAxisAlignment.start,
-                                                                                                                            children: [
-                                                                                                                              Column(
-                                                                                                                                // crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                                                                children: [
-                                                                                                                                  Container(
-                                                                                                                                    // color: Colors.blue,
-                                                                                                                                    width: inWidth,
-                                                                                                                                    child: Padding(
-                                                                                                                                      padding: const EdgeInsets.only(
-                                                                                                                                        top: 10,
-                                                                                                                                      ),
-                                                                                                                                      child: Column(
-                                                                                                                                        // mainAxisAlignment: MainAxisAlignment.start,
-                                                                                                                                        children: [
-                                                                                                                                          Row(
-                                                                                                                                            children: [
-                                                                                                                                              Container(
-                                                                                                                                                child: Text(
-                                                                                                                                                  'PERMINTAAN SURVEY',
-                                                                                                                                                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                                                                                                                                                ),
-                                                                                                                                              ),
-                                                                                                                                            ],
-                                                                                                                                          ),
-                                                                                                                                          Row(
-                                                                                                                                            children: [
-                                                                                                                                              Padding(
-                                                                                                                                                padding: const EdgeInsets.only(top: 5, left: 0),
-                                                                                                                                                child: Column(
-                                                                                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                                                                                  children: [
-                                                                                                                                                    // Add some spacing
-                                                                                                                                                    Container(
-                                                                                                                                                      width: inWidth,
-                                                                                                                                                      // color: Colors.blue,
-                                                                                                                                                      child: Row(
-                                                                                                                                                        children: [
-                                                                                                                                                          Text(
-                                                                                                                                                            surveyData['jadwal'] != null && surveyData['jadwal'].isNotEmpty ? formatTanggal(surveyData['jadwal']) : 'N/A',
-                                                                                                                                                            overflow: TextOverflow.clip,
-                                                                                                                                                            style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 7, 10, 113), fontWeight: FontWeight.bold),
-                                                                                                                                                          ),
-                                                                                                                                                          Text(' - '),
-                                                                                                                                                          Text(
-                                                                                                                                                            surveyData['jam'] != null && surveyData['jam'].isNotEmpty ? formatTime(surveyData['jam']) : 'N/A',
-                                                                                                                                                            overflow: TextOverflow.clip,
-                                                                                                                                                            style: TextStyle(fontSize: 14, color: Color.fromARGB(255, 7, 10, 113), fontWeight: FontWeight.bold),
                                                                                                                                                           ),
                                                                                                                                                         ],
                                                                                                                                                       ),
@@ -1579,7 +1511,7 @@ class _SurveyResultWidgetState extends State<SurveyResultWidget> {
                                                                                                                             ],
                                                                                                                           ),
                                                                                                                           SizedBox(
-                                                                                                                            height: 30,
+                                                                                                                            height: 50,
                                                                                                                           ),
                                                                                                                           Row(
                                                                                                                             // mainAxisAlignment: MainAxisAlignment.end,

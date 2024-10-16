@@ -157,10 +157,13 @@ class _berandaPage extends State<berandaPage> {
                                                   child: InkWell(
                                                     onTap: () async {
                                                       // Memeriksa status login dari Hive, menunggu hasil dari fungsi async
-                                                      bool isLoggedIn =
-                                                          await checkLoginStatus();
+                                                      // bool isLoggedIn =
+                                                      //     await checkLoginStatus();
+                                                      var loginBox =
+                                                          await Hive.openBox(
+                                                              'loginBox');
 
-                                                      if (isLoggedIn) {
+                                                      if (loginBox.isNotEmpty) {
                                                         // Jika sudah login, arahkan ke halaman SimulasiHargaPage
                                                         Navigator.push(
                                                           context,
@@ -168,7 +171,7 @@ class _berandaPage extends State<berandaPage> {
                                                             builder: (context) =>
                                                                 SimulasiHargaPage(
                                                               isRegistered:
-                                                                  true,
+                                                                  false,
                                                             ),
                                                           ),
                                                         );
@@ -846,7 +849,7 @@ class _berandaPage extends State<berandaPage> {
               SizedBox(
                 height: 10,
               ),
-              Blogwidget(),
+              // Blogwidget(),
             ],
           ),
         ),
