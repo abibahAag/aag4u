@@ -11,6 +11,9 @@ plugins {
 
 
 android {
+     kotlinOptions {
+        jvmTarget = '1.8'
+    }
     compileSdkVersion 33
     defaultConfig {
         applicationId "com.flutter.aag4u"

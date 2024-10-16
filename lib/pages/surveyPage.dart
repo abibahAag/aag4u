@@ -115,8 +115,16 @@ class _PdfViewerPageState extends State<PdfView> {
   }
 }
 
-class RequestTab extends StatelessWidget {
+/// Start Code RequestTab ///
+
+class RequestTab extends StatefulWidget {
+  @override
+  State<RequestTab> createState() => _RequestTabState();
+}
+
+class _RequestTabState extends State<RequestTab> {
   final String productName = "Kecoa,Lalat,Semut";
+
   final DateTime purchaseDate = DateTime(2024, 9, 1);
 
   @override
@@ -157,6 +165,8 @@ class RequestTab extends StatelessWidget {
     );
   }
 }
+
+/// End Code RequestTab ///
 
 class SurveyTab extends StatelessWidget {
   final String productName = "Kecoa,Lalat,Semut";

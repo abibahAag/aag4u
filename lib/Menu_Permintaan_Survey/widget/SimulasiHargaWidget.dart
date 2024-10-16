@@ -684,6 +684,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Permintaan_Survey/widget/SurveyResultWidget.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart'; // Untuk validasi dan format tanggal
@@ -758,6 +759,7 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
 
   final TextEditingController _alamatController = TextEditingController();
   final TextEditingController _waController = TextEditingController();
+  final TextEditingController _hamacontroller = TextEditingController();
 
   // List<String> _selectedItem = [];
   Future<List<String>>? futureHama;
@@ -767,6 +769,7 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
 
   List<Map<String, dynamic>> _selectedItems = [];
   bool isConnected = true; // Assume initially connected
+  bool _isFormVisible = false;
 
   HamaItem? _selectedItem;
   // Hama? selectedHama;
@@ -788,6 +791,16 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
 
     // futureKota = fetchKota();
     //  fetchDropdownItems();
+
+    // Pastikan tidak ada setState yang dipanggil sebelum frame pertama selesai dirender
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _isFormVisible =
+              false; // Atur state secara aman setelah frame pertama
+        });
+      }
+    });
   }
 
   void _onHamaSelected(HamaItem item) {
@@ -898,21 +911,100 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
     ];
   }
 
+  // void _submitForm() async {
+  //   if (_formKey.currentState!.validate()) {
+  //     _formKey.currentState!.save();
+
+  //     List<int> selectedHamaIds = _selectedItemIds.toList();
+
+  //     // Memeriksa apakah ada data yang kosong
+  //     if (selectedHamaIds.isEmpty ||
+  //         selectedProvinsi == null ||
+  //         selectedKota == null ||
+  //         _alamatController.text.isEmpty ||
+  //         _waController.text.isEmpty ||
+  //         _hamacontroller.text.isEmpty ||
+  //         _dateController.text.isEmpty || // Memeriksa input tanggal
+  //         _timeController.text.isEmpty)
+  //     //     {
+  //     //   // Memeriksa input jam
+  //     //   showDialog(
+  //     //     context: context,
+  //     //     builder: (BuildContext context) {
+  //     //       return AlertDialog(
+  //     //         title: Text(
+  //     //           'Warning!!!',
+  //     //           style: TextStyle(color: Colors.red),
+  //     //         ),
+  //     //         content: Text(
+  //     //           'Semua data harus diisi.',
+  //     //           style: TextStyle(fontSize: 15),
+  //     //         ),
+  //     //         actions: <Widget>[
+  //     //           TextButton(
+  //     //             onPressed: () {
+  //     //               Navigator.of(context).pop();
+  //     //             },
+  //     //             child: Text('OK'),
+  //     //           ),
+  //     //         ],
+  //     //       );
+  //     //     },
+  //     //   );
+  //     //   return; // Keluar dari fungsi jika ada data yang kosong
+  //     // }
+
+  //     final data = {
+  //       'hama': selectedHamaIds,
+  //       'provinsi': selectedProvinsi?.name,
+  //       'kota': selectedKota?.name,
+  //       'alamat': _alamatController.text,
+  //       'wa': _waController.text,
+  //       'hama_lainnya': _hamacontroller.text,
+  //       'jadwal': _dateController.text, // Menambahkan tanggal ke request body
+  //       'jam': _timeController.text, // Menambahkan jam ke request body
+  //       // 'email': , // Menambahkan dari hive box login
+  //     };
+
+  //     print('Request data: $data');
+
+  //     final response = await http.post(
+  //       Uri.parse('https://app.aag4u.co.id/api/survey'),
+  //       headers: {'Content-Type': 'application/json'},
+  //       body: json.encode(data),
+  //     );
+
+  //     print('Response body: ${response.body}');
+
+  //     if (response.statusCode == 200) {
+  //       final responseData = json.decode(response.body) as Map<String, dynamic>;
+  //       final surveyId = responseData['idi'];
+
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => SurveyResultWidget(surveyId: surveyId),
+  //         ),
+  //       );
+  //     } else {
+  //       print('Failed to submit data: ${response.statusCode}');
+  //     }
+  //   }
+  // }
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
       List<int> selectedHamaIds = _selectedItemIds.toList();
 
-      // Memeriksa apakah ada data yang kosong
-      if (selectedHamaIds.isEmpty ||
-          selectedProvinsi == null ||
+      // Memeriksa apakah ada data yang kosong, tetapi mengizinkan selectedHamaIds dan _hamacontroller.text untuk kosong
+      if (selectedProvinsi == null ||
           selectedKota == null ||
           _alamatController.text.isEmpty ||
           _waController.text.isEmpty ||
           _dateController.text.isEmpty || // Memeriksa input tanggal
           _timeController.text.isEmpty) {
-        // Memeriksa input jam
+        // Menampilkan dialog peringatan jika ada data yang kosong
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -922,7 +1014,7 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
                 style: TextStyle(color: Colors.red),
               ),
               content: Text(
-                'Semua data harus diisi.',
+                'Semua data harus diisi, kecuali Hama dan kolom Hama tambahan.',
                 style: TextStyle(fontSize: 15),
               ),
               actions: <Widget>[
@@ -938,6 +1030,7 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
         );
         return; // Keluar dari fungsi jika ada data yang kosong
       }
+      final isiBox = await Hive.openBox('loginBox');
 
       final data = {
         'hama': selectedHamaIds,
@@ -945,8 +1038,10 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
         'kota': selectedKota?.name,
         'alamat': _alamatController.text,
         'wa': _waController.text,
-        'tanggal': _dateController.text, // Menambahkan tanggal ke request body
+        'hama_lainnya': _hamacontroller.text, // Ini bisa kosong
+        'jadwal': _dateController.text, // Menambahkan tanggal ke request body
         'jam': _timeController.text, // Menambahkan jam ke request body
+        'email_user': isiBox.get('email'), // Menambahkan dari hive box login
       };
 
       print('Request data: $data');
@@ -997,13 +1092,29 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
 
   TextEditingController _dateController = TextEditingController();
   TextEditingController _timeController = TextEditingController();
+
   // final _formKey = GlobalKey<FormState>();
+
+  List<TextEditingController> _controllers = [];
 
   @override
   void dispose() {
     _dateController.dispose();
     _timeController.dispose();
     super.dispose();
+
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    _hamacontroller.dispose();
+
+    // super.dispose();
+  }
+
+  void _addNewForm() {
+    setState(() {
+      _controllers.add(TextEditingController());
+    });
   }
 
   String? _validateDate(String? value) {
@@ -1079,6 +1190,8 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
       }
     }
   }
+
+  // bool _isFormVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -1191,14 +1304,22 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
                                                                   Row(
                                                                     children: [
                                                                       Container(
-                                                                        // color: Colors
-                                                                        //     .amber,
                                                                         width:
                                                                             inWidth,
                                                                         height:
                                                                             900,
                                                                         alignment:
                                                                             Alignment.center,
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          // color:
+                                                                          //     Colors.amber,
+                                                                          // border: Border.all(
+                                                                          //     style: BorderStyle.solid,
+                                                                          //     color: Colors.grey),
+                                                                          borderRadius:
+                                                                              BorderRadius.all(Radius.circular(24)),
+                                                                        ),
                                                                         child:
                                                                             Padding(
                                                                           padding:
@@ -1316,6 +1437,145 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
                                                                                   ),
                                                                                 ],
                                                                               ),
+                                                                              SizedBox(height: 5),
+                                                                              Padding(
+                                                                                padding: const EdgeInsets.all(0),
+                                                                                child: Column(
+                                                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                                                  children: <Widget>[
+                                                                                    Row(
+                                                                                      mainAxisAlignment: MainAxisAlignment.start, // Tempatkan tombol di sebelah kiri
+                                                                                      children: [
+                                                                                        Container(
+                                                                                          // color: Colors.amber,
+                                                                                          width: 130,
+                                                                                          height: 25,
+                                                                                          child: ElevatedButton(
+                                                                                            onPressed: () {
+                                                                                              if (mounted) {
+                                                                                                setState(() {
+                                                                                                  _isFormVisible = !_isFormVisible;
+                                                                                                });
+                                                                                              }
+                                                                                            },
+                                                                                            style: ButtonStyle(
+                                                                                              fixedSize: WidgetStatePropertyAll(Size(100, 10)),
+                                                                                              backgroundColor: WidgetStatePropertyAll(Colors.grey[300]),
+                                                                                            ),
+                                                                                            child: Row(
+                                                                                              // crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                              mainAxisAlignment: MainAxisAlignment.start,
+                                                                                              children: [
+                                                                                                Column(
+                                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                                                                  children: [
+                                                                                                    Container(
+                                                                                                      // color: Colors.amber,
+                                                                                                      child: Row(
+                                                                                                        children: [
+                                                                                                          Icon(
+                                                                                                            Icons.add,
+                                                                                                            color: Colors.black,
+                                                                                                            size: 15,
+                                                                                                          ),
+                                                                                                          Text(
+                                                                                                            _isFormVisible ? 'Hama lainnya ' : 'Hama lainnya',
+                                                                                                            style: TextStyle(
+                                                                                                              color: Colors.black,
+                                                                                                              fontSize: 10,
+                                                                                                            ),
+                                                                                                          ),
+                                                                                                        ],
+                                                                                                      ),
+                                                                                                    ),
+                                                                                                  ],
+                                                                                                ),
+                                                                                              ],
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
+
+                                                                                    // Tampilkan form jika _isFormVisible adalah true
+                                                                                    if (_isFormVisible) ...[
+                                                                                      SizedBox(height: 10), // Menambahkan jarak antara tombol dan form
+                                                                                      TextField(
+                                                                                        controller: _hamacontroller,
+                                                                                        enableInteractiveSelection: true,
+                                                                                        maxLines: 2,
+                                                                                        decoration: InputDecoration(
+                                                                                          labelText: 'Nama Hama',
+                                                                                          border: OutlineInputBorder(
+                                                                                            borderRadius: BorderRadius.circular(10),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ],
+                                                                                  ],
+                                                                                ),
+                                                                              ),
+                                                                              // Column(
+                                                                              //   crossAxisAlignment: CrossAxisAlignment.start,
+                                                                              //   children: <Widget>[
+                                                                              //     // Konten lain di sini...
+                                                                              //     ElevatedButton(
+                                                                              //       onPressed: () {
+                                                                              //         setState(() {
+                                                                              //           _isFormVisible = !_isFormVisible; // Toggle visibility of the form
+                                                                              //         });
+                                                                              //       },
+                                                                              //       style: ButtonStyle(
+                                                                              //         fixedSize: WidgetStatePropertyAll(Size(150, 10)),
+                                                                              //         backgroundColor: WidgetStatePropertyAll(Colors.grey[300]),
+                                                                              //       ),
+                                                                              //       child: Container(
+                                                                              //         child: Row(
+                                                                              //           children: [
+                                                                              //             Icon(
+                                                                              //               Icons.add,
+                                                                              //               color: Colors.black,
+                                                                              //               size: 20,
+                                                                              //             ),
+                                                                              //             Text(
+                                                                              //               _isFormVisible ? 'Hama Lainnya' : 'Hama Lainnya',
+                                                                              //               style: TextStyle(
+                                                                              //                 color: Colors.black,
+                                                                              //                 fontSize: 12,
+                                                                              //               ),
+                                                                              //             ),
+                                                                              //           ],
+                                                                              //         ),
+                                                                              //       ),
+                                                                              //     ),
+
+                                                                              //     // Tampilkan form jika _isFormVisible adalah true
+                                                                              //     if (_isFormVisible) ...[
+                                                                              //       SizedBox(height: 10), // Menambahkan jarak antara tombol dan form
+                                                                              //       Container(
+                                                                              //         decoration: BoxDecoration(
+                                                                              //           border: Border.all(
+                                                                              //             color: Colors.grey,
+                                                                              //             width: 1,
+                                                                              //             style: BorderStyle.solid,
+                                                                              //           ),
+                                                                              //           borderRadius: BorderRadius.circular(10),
+                                                                              //         ),
+                                                                              //         padding: EdgeInsets.only(left: 10, top: 10),
+                                                                              //         child: TextField(
+                                                                              //           controller: _hamacontroller,
+                                                                              //           enableInteractiveSelection: true,
+                                                                              //           maxLines: 2,
+                                                                              //           decoration: InputDecoration(
+                                                                              //             hintText: ('Masukkan Hama  '),
+                                                                              //             border: InputBorder.none,
+                                                                              //           ),
+                                                                              //         ),
+                                                                              //       ),
+                                                                              //     ],
+                                                                              //   ],
+                                                                              // ),
                                                                               SizedBox(height: 20),
                                                                               Row(
                                                                                 children: [
@@ -1539,8 +1799,8 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
                                                                                                                       Text(
                                                                                                                         'Silakan pilih provinsi',
                                                                                                                         style: TextStyle(
-                                                                                                                          color: Colors.grey[600],
-                                                                                                                          fontSize: 12,
+                                                                                                                          color: const Color.fromARGB(255, 58, 56, 56),
+                                                                                                                          fontSize: 15,
                                                                                                                           fontWeight: FontWeight.w500,
                                                                                                                         ),
                                                                                                                       ),
@@ -1641,7 +1901,7 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
                                                                                 ],
                                                                               ),
                                                                               SizedBox(
-                                                                                height: 30,
+                                                                                height: 20,
                                                                               ),
                                                                               Row(
                                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1840,7 +2100,7 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
                                                                                   )
                                                                                 ],
                                                                               ),
-                                                                              SizedBox(height: 50),
+                                                                              SizedBox(height: 40),
                                                                               Column(
                                                                                 crossAxisAlignment: CrossAxisAlignment.end,
                                                                                 children: [

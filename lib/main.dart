@@ -12,13 +12,11 @@ import 'package:flutter_aag4u/controller/pushnotificationController.dart';
 import 'package:flutter_aag4u/pages/SplashScreenPage.dart';
 import 'package:flutter_aag4u/pages/berandaPage.dart';
 import 'package:flutter_aag4u/pages/chatPage.dart';
-import 'package:flutter_aag4u/pages/homepage.dart';
 // import 'package:flutter_aag4u/pages/promoPage.dart';
 import 'package:flutter_aag4u/pages/surveyPage.dart';
 import 'package:flutter_aag4u/services/local_notifications.dart';
-import 'package:flutter_aag4u/widgets/PekerjaanWidget.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'firebase_options.dart';
 
@@ -149,8 +147,7 @@ class _MyAppState extends State<MyApp> {
       navigatorKey: nevegatorkey,
       routes: {
         "/": (context) => SplashScreenPage(),
-        "homePage": (context) =>
-            homePage(isRegistered: false, isLoggedIn: false),
+        // "homePage": (context) => homePage(isRegistered: false, isLoggedIn: false),
         "BerandaPage": (context) => berandaPage(),
         "surveyPage": (context) => SurveyPage(),
         "promoPage": (context) => promoPage(),
