@@ -101,18 +101,17 @@
 // }
 
 // blog_detail_page.dart
-import 'dart:typed_data'; // Import untuk Uint8List
 
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart'; // Import flutter_html package
 
-class Artikelwidget extends StatelessWidget {
+class Artikelpage extends StatelessWidget {
   final int id;
   final String title;
-  final Uint8List photo; // Menggunakan Uint8List untuk gambar
+  final String photo; // Menggunakan Uint8List untuk gambar
   final String body;
 
-  const Artikelwidget({
+  const Artikelpage({
     Key? key,
     required this.id,
     required this.title,
@@ -131,8 +130,9 @@ class Artikelwidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Tampilkan gambar dari Uint8List menggunakan Image.memory
-            Image.memory(
-              photo, // Gunakan photo yang sudah diterima sebagai Uint8List
+            Image.network(
+              photo,
+              // as Uint8List, // Gunakan photo yang sudah diterima sebagai Uint8List
               fit: BoxFit.cover,
               width: double.infinity,
               height: 250, // Atur tinggi gambar

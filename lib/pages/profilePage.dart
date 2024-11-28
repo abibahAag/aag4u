@@ -1480,14 +1480,6 @@ class _ProfilePageState extends State<ProfilePage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Logout dengan menghapus email dari Hive
-          // box.delete('email');
-
-          // Kembali ke halaman login
-          // Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(builder: (context) => _handleSignOut),
-          // );
           _handleSignOut();
         },
         icon: Icon(Icons.logout),

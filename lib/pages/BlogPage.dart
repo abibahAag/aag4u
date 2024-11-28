@@ -1,10 +1,6 @@
 import 'dart:convert';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_aag4u/controller/notification_controller.dart';
-import 'package:flutter_aag4u/pages/artikelPage.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 
 class Blog {
@@ -52,6 +48,7 @@ class _BlogPageState extends State<BlogPage> {
       throw Exception('Failed to load blog posts');
     }
   }
+
   // Map payload = {};
 
   @override
@@ -149,3 +146,24 @@ class _BlogPageState extends State<BlogPage> {
     );
   }
 }
+
+// if length != 
+// box.clear
+
+// photos = last(/).blog photo
+// base64 = buatBase64(photos)
+
+
+
+// fgff = [
+//   id: lkl,
+//   photo: base54,
+//   titl:b;og.ti
+
+// ]
+
+// box.put(fhghg)
+
+// open.box map 
+// ===============
+// open.box map 

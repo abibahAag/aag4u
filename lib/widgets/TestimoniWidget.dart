@@ -126,6 +126,7 @@ class Testimoniwidget extends StatefulWidget {
 
 class _TestimoniwidgetState extends State<Testimoniwidget> {
   Future<List<Testi>>? futureTesti;
+  // Box box = Hive.box('testiBox');
 
   @override
   void initState() {
@@ -133,53 +134,72 @@ class _TestimoniwidgetState extends State<Testimoniwidget> {
     futureTesti = fetchTesti();
   }
 
-   Future<List<Testi>> fetchTesti() async {
+  Future<List<Testi>> fetchTesti() async {
     var box = await Hive.openBox('testiBox');
 
-    // Cek apakah data sudah ada di cache Hive
-    if (box.isNotEmpty) {
-      List<String> imageNames = box.keys.cast<String>().toList();
-      List<Testi> Testis = [];
+    // Show current data from Hive immediately
+    List<Testi> hiveData = await _fetchHiveTestiData();
 
-      // Ambil data dari Hive
-      for (var imageName in imageNames) {
-        String? base64Image = box.get(imageName);
-        if (base64Image != null) {
-          Testis.add(Testi(
-              gambar_testi:
-                  'https://app.aag4u.co.id/api/getTesti/$imageName'));
+    // Start updating Hive box in the background (if connected)
+    _updateHiveDataInBackground(box);
+
+    // Return data from Hive immediately, no loading state
+    return hiveData;
+  }
+
+  Future<void> _updateHiveDataInBackground(Box box) async {
+    bool connected = await InternetConnectionChecker().hasConnection;
+
+    if (connected) {
+      String apiUrl = 'https://app.aag4u.co.id/api/getTesti'; // API URL
+      var response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        List jsonResponse = json.decode(response.body);
+        List<Testi> testis =
+            jsonResponse.map((data) => Testi.fromJson(data)).toList();
+
+        int testiCount = testis.length;
+        int hiveTestiCount = box.length;
+
+        // If count differs, update the Hive box with new data
+        if (hiveTestiCount != testiCount) {
+          await box.clear();
+
+          for (var testi in testis) {
+            String imageName = testi.gambar_testi.split('/').last;
+            String? base64Image = await fetchImageAsBase64(testi.gambar_testi);
+
+            if (base64Image != null) {
+              await box.put(imageName, base64Image);
+            }
+          }
+          print('Hive data updated in background testi');
         }
       }
-
-      // Kembalikan data dari cache Hive
-      print('Data loaded from cache');
-      return Testis;
     }
+  }
 
-    // Jika cache kosong, ambil data dari API dan simpan ke cache
-    print('Fetching data from API');
-    final response =
-        await http.get(Uri.parse('https://app.aag4u.co.id/api/getTesti'));
+  Future<List<Testi>> _fetchHiveTestiData() async {
+    var box = await Hive.openBox('testiBox');
+    List<Testi> testis = [];
 
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      List<Testi> Testis =
-          jsonResponse.map((data) => Testi.fromJson(data)).toList();
+    // Iterate over the keys in the Hive box
+    for (var key in box.keys) {
+      // Get the base64 image stored in Hive for each key
+      String? base64Image = box.get(key);
 
-      // Simpan data di cache Hive
-      for (var Testi in Testis) {
-        String imageName = Testi.gambar_testi.split('/').last;
-        String? base64Image = await fetchImageAsBase64(Testi.gambar_testi);
-        if (base64Image != null) {
-          await box.put(imageName, base64Image);
-        }
+      if (base64Image != null) {
+        // Create Testi object using the base64 image
+        testis.add(Testi(
+          gambar_testi: base64Image, // Using the base64 image string
+          // You can add other fields if necessary for the Testi object
+        ));
       }
-
-      // Kembalikan data yang baru diambil dari API
-      return Testis;
-    } else {
-      throw Exception('Failed to load Banner posts');
     }
+
+    // Return the list of Testi objects
+    return testis;
   }
 
 // Fungsi untuk mengambil gambar sebagai base64
@@ -192,82 +212,6 @@ class _TestimoniwidgetState extends State<Testimoniwidget> {
     return null;
   }
 
-  // Future<List<Testi>> fetchTesti() async {
-  //   var box = await Hive.openBox('testiBox');
-  //   bool hasConnection = await InternetConnectionChecker().hasConnection;
-
-  //   if (!hasConnection) {
-  //     // Jika tidak ada koneksi internet, ambil data dari Hive
-  //     List<String> imageNames = box.keys.cast<String>().toList();
-  //     List<Testi> testis = [];
-
-  //     for (var imageName in imageNames) {
-  //       String? base64Image = box.get(imageName);
-  //       if (base64Image != null) {
-  //         // Anda bisa menambahkan logika untuk membangun objek Testi dari base64Image
-  //         testis.add(Testi(
-  //             gambar_testi:
-  //                 'https://app.aag4u.co.id/public/image/testi/$imageName'));
-  //       }
-  //     }
-
-  //     return testis;
-  //   } else {
-  //     // Jika ada koneksi internet, ambil data dari API dan simpan ke Hive
-  //     try {
-  //       final response =
-  //           await http.get(Uri.parse('https://app.aag4u.co.id/api/getTesti'));
-
-  //       if (response.statusCode == 200) {
-  //         List jsonResponse = json.decode(response.body);
-  //         List<Testi> testis =
-  //             jsonResponse.map((data) => Testi.fromJson(data)).toList();
-
-  //         // Menyimpan setiap gambar ke Hive
-  //         for (var testi in testis) {
-  //           String imageName = testi.gambar_testi.split('/').last;
-  //           String? base64Image = await fetchImageAsBase64(testi.gambar_testi);
-  //           if (base64Image != null) {
-  //             await box.put(imageName, base64Image);
-  //           }
-  //         }
-
-  //         return testis;
-  //       } else {
-  //         throw Exception('Failed to load Testi posts');
-  //       }
-  //     } catch (e) {
-  //       print("Error fetching data: $e");
-  //       // Jika terjadi kesalahan saat fetching dari API, ambil data dari Hive
-  //       List<String> imageNames = box.keys.cast<String>().toList();
-  //       List<Testi> testis = [];
-
-  //       for (var imageName in imageNames) {
-  //         String? base64Image = box.get(imageName);
-  //         if (base64Image != null) {
-  //           testis.add(Testi(
-  //               gambar_testi:
-  //                   'https://app.aag4u.co.id/public/image/testi/$imageName'));
-  //         }
-  //       }
-
-  //       return testis;
-  //     }
-  //   }
-  // }
-
-  // Future<String?> fetchImageAsBase64(String imageUrl) async {
-  //   try {
-  //     final response = await http.get(Uri.parse(imageUrl));
-  //     if (response.statusCode == 200) {
-  //       return base64Encode(response.bodyBytes);
-  //     }
-  //   } catch (e) {
-  //     print("Error fetching image: $e");
-  //   }
-  //   return null;
-  // }
-
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width * 0.9;
@@ -278,7 +222,7 @@ class _TestimoniwidgetState extends State<Testimoniwidget> {
       child: Padding(
         padding: const EdgeInsets.only(left: 0, right: 0),
         child: FutureBuilder<List<Testi>>(
-          future: futureTesti,
+          future: fetchTesti(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator());
@@ -288,40 +232,52 @@ class _TestimoniwidgetState extends State<Testimoniwidget> {
               List<Testi> posts = snapshot.data!;
               return Row(
                 children: posts.map((testi) {
-                  var box = Hive.box('testiBox');
-                  String imageName = testi.gambar_testi.split('/').last;
-                  String? base64Image = box.get(imageName);
-
-                  return Container(
-                      width: screenWidth,
-                      decoration: BoxDecoration(
-                          // color: Colors.amber,
-                          borderRadius: BorderRadius.circular(24)),
-                      child: Column(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(24.0),
-                            child: base64Image != null
-                                ? Image.memory(
-                                    base64Decode(base64Image),
-                                    width: screen,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Container(
-                                    width: screenWidth,
-                                    height: 100,
-                                    color: Colors.grey,
-                                    child:
-                                        Center(child: Text("Image not found")),
-                                  ),
-                            //  Image.network(
-                            //   testi.gambar_testi,
-                            //   width: screen,
-                            //   fit: BoxFit.cover,
-                            // ),
-                          ),
-                        ],
-                      ));
+                  return Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                            // width: screenWidth,
+                            // width: 320,
+                            // height: 200,
+                            // padding: EdgeInsets.only(left: 10, right: 10),
+                            decoration: BoxDecoration(
+                                color: Colors.amber,
+                                borderRadius: BorderRadius.circular(24)),
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(24.0),
+                                  child: testi.gambar_testi != null
+                                      ? Row(
+                                          children: [
+                                            Column(
+                                              children: [
+                                                Container(
+                                                  child: Image.memory(
+                                                    base64Decode(
+                                                        testi.gambar_testi),
+                                                    width: screen,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        )
+                                      : Container(
+                                          width: screenWidth,
+                                          height: 100,
+                                          color: Colors.grey,
+                                          child: Center(
+                                              child: Text("Image not found")),
+                                        ),
+                                ),
+                              ],
+                            )),
+                      ),
+                    ],
+                  );
                 }).toList(),
               );
             } else {

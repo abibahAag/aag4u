@@ -3,11 +3,10 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_aag4u/Menu_Blog/BlogPage.dart';
 // import 'package:flutter_aag4u/Menu_Promo/MenuPromoWidget.dart';
 import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
-import 'package:flutter_aag4u/api/firebase_api.dart';
-import 'package:flutter_aag4u/controller/notification_controller.dart';
+import 'package:flutter_aag4u/Notification/PushNotifications.dart';
+import 'package:flutter_aag4u/Notification/local_notification_service.dart';
 import 'package:flutter_aag4u/controller/pushnotificationController.dart';
 import 'package:flutter_aag4u/pages/SplashScreenPage.dart';
 import 'package:flutter_aag4u/pages/berandaPage.dart';
@@ -44,37 +43,38 @@ GoogleSignIn _googleSignIn = GoogleSignIn(
 );
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter(); // Inisialisasi Hive dengan Hive Flutter
 
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Future.wait([]);
+  // await PushNotificationsService.init(), //2
+  await LocalNotificationService.init(); //3
+  await pushnotificationController.init(); //2
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  FirebaseApi firebaseApi = FirebaseApi();
-  await FirebaseApi().initNotifications();
-  String? token = await FirebaseMessaging.instance.getToken();
-  print('token $token');
-  // FirebaseMessaging.onBackgroundMessage(_bg_notification);
-  pushnotificationController.init();
-  pushnotificationController.localNotiInit();
-  await NotificationController.initializeLocalNotifications();
+  // FirebaseApi firebaseApi = FirebaseApi();
+  // await FirebaseApi().initNotifications();
+  // String? token = await FirebaseMessaging.instance.getToken();
+  // print('token $token');
+  // // FirebaseMessaging.onBackgroundMessage(_bg_notification);
 
-  FirebaseMessaging.onBackgroundMessage(_backgroundMessageHandler);
-  LocalNotificationsService.initilize();
+  // pushnotificationController.localNotiInit();
+  // await NotificationController.initializeLocalNotifications();
 
-  final message = await FirebaseMessaging.instance.getInitialMessage();
+  // FirebaseMessaging.onBackgroundMessage(_backgroundMessageHandler);
+  // // FirebaseMessaging.onBackgroundMessage(handlebackgroundMessage);
+  // LocalNotificationsService.initilize();
 
-  if (message != null) {
-    Future.delayed(Duration(seconds: 5), () {
-      nevegatorkey.currentState!.pushNamed("/message", arguments: message);
-    });
-  }
+  // final message = await FirebaseMessaging.instance.getInitialMessage();
+
+  // if (message != null) {
+  //   Future.delayed(Duration(seconds: 5), () {
+  //     nevegatorkey.currentState!.pushNamed("/message", arguments: message);
+  //   });
+  // }
 
   /// untuk menyimpan data login ke dalam hive box
-  WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox('loginBox'); // Buka Hive box untuk menyimpan data login
 
@@ -86,6 +86,16 @@ void main() async {
 //   FirebaseMessaging.onMessage.listen(_firebaseMessagingOnMessage);
 //   FirebaseMessaging.onMessageOpenedApp
 //       .listen(_firebaseMessagingOnMessageOpenedApp);
+
+  // FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+// // Minta izin untuk menerima notifikasi di Android
+//   NotificationSettings settings = await messaging.requestPermission(
+//     alert: true,
+//     badge: true,
+//     sound: true,
+//   );
+
   runApp(const MyApp());
 }
 
@@ -153,8 +163,9 @@ class _MyAppState extends State<MyApp> {
         "promoPage": (context) => promoPage(),
         // "profilePage": (context) =>
         //     Pekerjaanwidget(email: '', name: '', phoneNumber: ''),
-        "blogPage": (context) => BlogPage(),
+        // "blogPage": (context) => BlogPage(),
         "chatPage": (context) => ChatPage(),
+        "PushNotifications": (context) => PushNotifications(),
       },
     );
   }

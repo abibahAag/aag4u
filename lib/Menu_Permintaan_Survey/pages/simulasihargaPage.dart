@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Permintaan_Survey/widget/SimulasiHargaWidget.dart';
 
 class SimulasiHargaPage extends StatefulWidget {
-  const SimulasiHargaPage({super.key, required bool isRegistered});
+  const SimulasiHargaPage(
+      {super.key, required bool isRegistered, required bool login});
 
   @override
   State<SimulasiHargaPage> createState() => _SimulasiHargaPageState();
