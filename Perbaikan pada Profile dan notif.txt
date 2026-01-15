@@ -1,0 +1,15 @@
+Perbaikan pada Profile
+
+• folder page -> file berandaPage.dart -> line 1020 sampai 1063
+
+• folder page -> file profilePage.dart 
+
+
+Perbaikan Notification
+
+• Di folder widgets ( file access_firebase_token
+• Tambahkan folder assets/private
+• ubah name file menjadi service-account.json
+• file pubspec.yaml tambahkan  di assets section ->
+    # Firebase Service Account FCM NOTIFIKASI
+    - assets/private/service-account.json

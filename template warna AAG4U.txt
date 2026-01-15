@@ -1,0 +1,281 @@
+template warna AAG4U
+
+survey id 198
+
+link logo aag
+https://aag.co.id/storage/app/media/logo/new_logo.png
+
+//cara push ke github
+git add .
+git commit -m "descripsi"
+git push origin main
+git push origin main --force ( kalua sudah terlalu banyak commit)
+
+
+warna biru
+
+#233d63
+0xFF233d63
+git 
+rgb(38 57 77)
+
+{
+
+
+========= Api AAG4U ===============
+
+
+
+=== untuk mengambil data get chat == get ==
+https://app.aag4u.co.id/api/getChatList/abibah.aag@gmail.com (email login)
+
+
+
+=== untuk  send chat == post ==
+
+https://app.aag4u.co.id/api/sendChat
+{
+from "email"
+to   "email"
+body
+file (optional)
+}
+
+
+=== untuk mengambil data get compro == get ==
+https://app.aag4u.co.id/api/getCompro
+
+
+==== untuk get data profile = Get ====
+https://app.aag4u.co.id/api/getProfile/abibah.aag@gmail.com
+
+
+
+
+==  Untuk mengambil data perserta event by id ==== get
+https://app.aag4u.co.id/api/getEventOneBy/${widget.EventId}
+
+==  Untuk mengambil data event by category ==== get
+https://app.aag4u.co.id/api/getEventBy/$category
+
+==  Untuk mengambil data event ==== get
+https://app.aag4u.co.id/api/getEvent
+
+== Untuk mengambil data category event ==== get
+https://app.aag4u.co.id/api/getEventCategory
+
+
+==  cek register id event ==== get
+https://app.aag4u.co.id/api/cekEventRegis/email/id_event
+
+
+=== detail info event == Post ====
+
+https://app.aag4u.co.id/api/addInfo
+
+{
+nama
+gender
+telp
+provinsi
+kota
+event_id
+email
+}
+
+
+
+
+==== untuk get data all pekerjaan = Get ====
+
+https://app.aag4u.co.id/api/getWork
+
+
+==== untuk get data all luasan area = Get ====
+
+https://app.aag4u.co.id/api/getArea
+
+
+==== untuk get data all cabang = Get  ====
+
+https://app.aag4u.co.id/api/getBranch
+
+
+==== untuk get data all segment = Get  ====
+
+www.app.aag4u.co.id/api/getSegment
+
+
+
+==== untuk get data all Blog = Get   ====
+
+https://app.aag4u.co.id/api/getPost  -> all
+image/blog
+
+https://app.aag4u.co.id/api/getPostCate  -> all categori name 
+
+
+https://app.aag4u.co.id/api/getPostCatePest/id -> all blog by id categori
+
+
+https://app.aag4u.co.id/api/getPostLimit  -> limit
+
+https://app.aag4u.co.id/api/getPostBy/id  -> fir
+
+
+==== untuk get data all Testimoni = Get  ====
+
+https://app.aag4u.co.id/api/getTesti
+image/testi
+
+
+
+==== untuk get data all hama = Get  ====
+
+https://app.aag4u.co.id/api/getPest
+
+
+==== untuk get data all Survey = Get  ====
+
+https://app.aag4u.co.id/api/getSurvey
+
+
+==== untuk post data all register google = post  ====
+
+https://app.aag4u.co.id/api/addUserGoogle
+
+{
+ name
+ email
+ photo
+}
+
+==== untuk post data login user = post  ====
+https://app.aag4u.co.id/api/logon
+
+
+
+
+==== untuk post data all register user = post  ====
+https://app.aag4u.co.id/api/getUser
+
+
+https://app.aag4u.co.id/api/addUser
+
+{
+ name
+ email
+ password
+}
+
+
+
+
+==== untuk get data all splash = Get  ====
+
+https://app.aag4u.co.id/api/getSplash
+image/splash
+
+==== untuk menyimpan data token  ====
+https://app.aag4u.co.id/api/updateToken
+[
+email
+token
+bearer
+]
+
+==== untuk menyimpan data token bearer  ====
+https://app.aag4u.co.id/api/updateBearer
+[
+bearer
+]
+
+==== untuk get data all Banner = Get   ====
+
+https://app.aag4u.co.id/api/getBanner
+https://app.aag4u.co.id/public/image/banner/bannerslide.png
+
+
+====  untuk get data all promo   ====
+https://app.aag4u.co.id/api/getPromo
+
+
+==== untuk post data hasil = Post   ====
+
+https://app.aag4u.co.id/api/getResult
+
+- field form 
+  1. kerjaan  = 3
+  2. luasan   = 2
+  3. cabang   = 1
+  4. segmen   = 2
+
+
+====  Untuk Post Data Munculkan Luasan = Post  ====
+
+https://app.aag4u.co.id/api/getAreaBy
+
+- field form 
+  1. kerjaan
+  2. cabang
+  3. segmen
+
+
+==== Untuk Post Data Survey  = Post  ====
+
+https://app.aag4u.co.id/api/survey
+
+- field form 
+  1. Provinsi (string)
+  2. kota (string)
+  3. alamat (string)
+  4. wa (string)
+  5. hama (id multiple ) 
+
+{
+  {
+    "provinsi": "jawa barat",
+    "kota": "kota bekasi",
+    "alamat": "kota bekasi",
+    "wa": "08763638836",
+    "hama": [1,2,3]
+  }
+}
+
+
+
+link firebase Create service account
+com-flutter-aag4u@aag4u-5878f.iam.gserviceaccount.com
+
+
+
+keytool.exe -list -v -keystore "C:\Users\abiba\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass 
+
+
+
+
+git
+
+
+
+menu
+1. simulasi Harga
+    - luas
+    - treatment
+    - 
+
+2. Reques Survei
+   - masukin maps location
+   -
+
+
+3. di atas blog, di Bawah iklan buat testimoni
+
+
+
+- untuk mengubah icon flutter melalui terminal
+ flutter pub run flutter_launcher_icons:main
+
+
+
+update bearer to aapi

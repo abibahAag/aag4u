@@ -1,0 +1,28 @@
+ untuk mengirim notifikasi dari postman
+
+
+POST : https://fcm.googleapis.com/v1/projects/aag4u-5878f/messages:send
+
+
+-> isi data nya di Body (raw)
+
+{
+  "message": {
+    "token": "f2SRjp46TyiP5b6-usDEau:APA91bFZTeefG5zDKN9doeVrYrIVTO9SxZyYEP_fwJF_-MlF0v5aBY483cGS4Kzt--hvdlaKDCVB5tsnlL0XmELnkgKzh8uD5ThIgyCTEAkrlms4W_3Jqsg", 
+    "notification": {
+      "title": "test",
+      "body": "test"
+    },
+    "data": {
+      "click_action": "FLUTTER_NOTIFICATION_CLICK"
+    }
+  }
+}
+
+
+
+simpan token ke dalam hive box (simpanToken)
+isi hivebox token,bearer
+
+Ketika token di butuhkan untuk di kirim ke BE get dari hive box
+saat token dan bearer generate baru, update hive box 
