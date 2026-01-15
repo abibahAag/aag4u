@@ -44,4 +44,9 @@ app.*.map.json
 
 
 # Secret files
-assets/private/service-account.json
+# assets/private/service-account.json
+assets/private/
+*.json
+*.txt
+.env
+
