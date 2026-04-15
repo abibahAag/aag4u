@@ -1,17 +1,39 @@
-// import 'dart:async';
-
 // import 'package:awesome_notifications/awesome_notifications.dart';
+// import 'package:firebase_core/firebase_core.dart';
 // import 'package:flutter/material.dart';
 // import 'package:flutter_aag4u/main.dart';
-// // import 'dart:isolate';
-// // import 'dart:ui';
+// import 'package:fluttertoast/fluttertoast.dart';
 
 // ///  *********************************************
 // ///     NOTIFICATION CONTROLLER
 // ///  *********************************************
 // ///
-// class NotificationController {
-//   static ReceivedAction? initialAction;
+// class NotificationController extends ChangeNotifier {
+//   // static ReceivedAction? initialAction;
+//   /// *********************************************
+//   ///   SINGLETON PATTERN
+//   /// *********************************************
+
+//   static final NotificationController _instance =
+//       NotificationController._internal();
+
+//   factory NotificationController() {
+//     return _instance;
+//   }
+
+//   NotificationController._internal();
+
+//   /// *********************************************
+//   ///  OBSERVER PATTERN
+//   /// *********************************************
+
+//   String _firebaseToken = '';
+//   String get firebaseToken => _firebaseToken;
+
+//   String _nativeToken = '';
+//   String get nativeToken => _nativeToken;
+
+//   ReceivedAction? initialAction;
 
 //   ///  *********************************************
 //   ///     INITIALIZATIONS
@@ -37,28 +59,113 @@
 //         debug: true);
 
 //     // Get initial notification action is optional
-//     initialAction = await AwesomeNotifications()
+//     _instance.initialAction = await AwesomeNotifications()
 //         .getInitialNotificationAction(removeFromActionEvents: false);
 //   }
 
-//   // static ReceivePort? receivePort;
-//   // static Future<void> initializeIsolateReceivePort() async {
-//   //   receivePort = ReceivePort('Notification action port in main isolate')
-//   //     ..listen(
-//   //         (silentData) => onActionReceivedImplementationMethod(silentData));
+//   static Future<void> initializeRemoteNotifications(
+//       {required bool debug}) async {
+//     await Firebase.initializeApp();
+//     await AwesomeNotificationsFcm().initialize(
+//       onFcmTokenHandle: NotificationController.myFcmTokenHandle,
+//       onNativeTokenHandle: NotificationController.myNativeTokenHandle,
+//       onFcmSilentDataHandle: NotificationController.mySilentDataHandle,
+//       licenseKeys: null,
+//       debug: debug,
+//     );
+//   }
 
-//   //   // This initialization only happens on main isolate
-//   //   IsolateNameServer.registerPortWithName(
-//   //       receivePort!.sendPort, 'notification_action_port');
-//   // }
+//   ///  *********************************************
+//   ///     LOCAL NOTIFICATION EVENTS
+//   ///  *********************************************
+
+//   static Future<void> getInitialNotificationAction() async {
+//     ReceivedAction? receivedAction = await AwesomeNotifications()
+//         .getInitialNotificationAction(removeFromActionEvents: true);
+//     if (receivedAction == null) return;
+
+//     // Fluttertoast.showToast(
+//     //     msg: 'Notification action launched app: $receivedAction',
+//     //   backgroundColor: Colors.deepPurple
+//     // );
+//     print('App launched by a notification action: $receivedAction');
+//   }
+
+//   ///  *********************************************
+//   ///     REMOTE NOTIFICATION EVENTS
+//   ///  *********************************************
+
+//   /// Use this method to execute on background when a silent data arrives
+//   /// (even while terminated)
+//   @pragma("vm:entry-point")
+//   static Future<void> mySilentDataHandle(FcmSilentData silentData) async {
+//     print('"SilentData": ${silentData.toString()}');
+
+//     if (silentData.createdLifeCycle != NotificationLifeCycle.Foreground) {
+//       print("bg");
+//     } else {
+//       print("FOREGROUND");
+//     }
+
+//     print('mySilentDataHandle received a FcmSilentData execution');
+//     await executeLongTaskInBackground();
+//   }
+
+//   /// Use this method to detect when a new fcm token is received
+//   @pragma("vm:entry-point")
+//   static Future<void> myFcmTokenHandle(String token) async {
+//     if (token.isNotEmpty) {
+//       debugPrint('Firebase Token:"$token"');
+//     } else {
+//       Fluttertoast.showToast(
+//           msg: 'Fcm token deleted',
+//           backgroundColor: Colors.red,
+//           textColor: Colors.white,
+//           fontSize: 16);
+
+//       debugPrint('Firebase Token deleted');
+//     }
+
+//     _instance._firebaseToken = token;
+//     _instance.notifyListeners();
+//   }
+
+//   /// Use this method to detect when a new native token is received
+//   @pragma("vm:entry-point")
+//   static Future<void> myNativeTokenHandle(String token) async {
+//     debugPrint('Native Token:"$token"');
+
+//     _instance._nativeToken = token;
+//     _instance.notifyListeners();
+//   }
 
 //   ///  *********************************************
 //   ///     NOTIFICATION EVENTS LISTENER
 //   ///  *********************************************
 //   ///  Notifications events are only delivered after call this method
 //   static Future<void> startListeningNotificationEvents() async {
-//     AwesomeNotifications()
-//         .setListeners(onActionReceivedMethod: onActionReceivedMethod);
+//     AwesomeNotifications().setListeners(
+//         onActionReceivedMethod: onActionReceivedMethod,
+//         onNotificationDisplayedMethod: onNotificationDisplayedMethod,
+//         onNotificationCreatedMethod: onNotificationCreatedMethod,
+//         onDismissActionReceivedMethod: onDismissActionReceivedMethod);
+//   }
+
+//   ///  *********************************************
+//   ///     REMOTE TOKEN REQUESTS
+//   ///  *********************************************
+
+//   static Future<String> requestFirebaseToken() async {
+//     if (await AwesomeNotificationsFcm().isFirebaseAvailable) {
+//       try {
+//         return await AwesomeNotificationsFcm().requestFirebaseAppToken();
+//       } catch (exception) {
+//         debugPrint('$exception');
+//       }
+//     } else {
+//       debugPrint('Firebase is not available on this project');
+//     }
+//     return '';
 //   }
 
 //   ///  *********************************************
@@ -68,6 +175,7 @@
 //   @pragma('vm:entry-point')
 //   static Future<void> onActionReceivedMethod(
 //       ReceivedAction receivedAction) async {
+//     AwesomeNotifications().decrementGlobalBadgeCounter();
 //     if (receivedAction.actionType == ActionType.SilentAction ||
 //         receivedAction.actionType == ActionType.SilentBackgroundAction) {
 //       // For background actions, you must hold the execution until the end
@@ -94,6 +202,27 @@
 //       // return onActionReceivedImplementationMethod(receivedAction);
 //     }
 //   }
+
+//   @pragma('vm:entry-point')
+//   static Future<void> onNotificationDisplayedMethod(
+//       ReceivedNotification receivedNotification) async {
+//     AwesomeNotifications().decrementGlobalBadgeCounter();
+//   }
+
+//   @pragma('vm:entry-point')
+//   static Future<void> onNotificationCreatedMethod(
+//       ReceivedNotification ReceivedNotification) async {
+//     AwesomeNotifications().decrementGlobalBadgeCounter();
+//   }
+
+//   @pragma('vm:entry-point')
+//   static Future<void> onDismissActionReceivedMethod(
+//       ReceivedAction ReceivedAction) async {
+//     AwesomeNotifications().decrementGlobalBadgeCounter();
+//   }
+//   // @pragma('vm:entry-point')
+//   // static Future<void> onNotificationDisplayedMethod(
+//   //     ReceivedNotification receivedNotification) async {}
 
 //   // static Future<void> onActionReceivedImplementationMethod(
 //   //     ReceivedAction receivedAction) async {
@@ -255,6 +384,16 @@
 //   static Future<void> cancelNotifications() async {
 //     await AwesomeNotifications().cancelAll();
 //   }
+
+//   static initializeIsolateReceivePort() {}
+
+//   static AwesomeNotificationsFcm() {}
+
+//   // static initializeRemoteNotifications({required bool debug}) {}
+// }
+
+// class FcmSilentData {
+//   get createdLifeCycle => null;
 // }
 
 // Future<void> myNotifyScheduleInHours({

@@ -1085,6 +1085,7 @@
 
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1093,7 +1094,7 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 
 class ImageData {
-  final int id; // Change type to int
+  final int id;
   final String photo;
   final String title;
   final String body;
@@ -1105,7 +1106,6 @@ class ImageData {
     required this.body,
   });
 
-  // Method to convert the object to a Map for Hive storage
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -1115,13 +1115,12 @@ class ImageData {
     };
   }
 
-  // Method to create an object from a Map
   factory ImageData.fromMap(Map<String, dynamic> map) {
     return ImageData(
-      id: map['id'] ?? 0, // Set a default value if null (0 for int)
-      photo: map['photo'] ?? '', // Set as empty string if null
-      title: map['title'] ?? 'Untitled', // Default title if null
-      body: map['body'] ?? '', // Default body if null
+      id: map['id'] ?? 0,
+      photo: map['photo'] ?? '',
+      title: map['title'] ?? 'Untitled',
+      body: map['body'] ?? '',
     );
   }
 }
@@ -1132,8 +1131,8 @@ class Blogwidget extends StatefulWidget {
 }
 
 class _BlogwidgetState extends State<Blogwidget> {
-  // List<ImageData> _imageUrls = []; // Tidak perlu menggunakan `late` di sini
   List<Map<String, dynamic>> _imageUrls = [];
+
   @override
   void initState() {
     super.initState();
@@ -1146,7 +1145,6 @@ class _BlogwidgetState extends State<Blogwidget> {
           await http.get(Uri.parse('https://app.aag4u.co.id/api/getPostLimit'));
       if (response.statusCode == 200) {
         List jsonData = json.decode(response.body);
-        // Asumsikan API mengembalikan list objek JSON
         return jsonData.map((item) => ImageData.fromMap(item)).toList();
       } else {
         throw Exception('Failed to load image data from API');
@@ -1176,43 +1174,29 @@ class _BlogwidgetState extends State<Blogwidget> {
       List<ImageData> apiImageData = await _fetchImageDataFromApi();
 
       if (!listEquals(apiImageData, loadedData)) {
-        // Jika data dari API berbeda dengan data di Hive, perbarui Hive dan UI
         await hiveBox
             .clear(); // Menghapus semua data di Hive sebelum memperbarui
         for (var imageData in apiImageData) {
-          // await hiveBox.add(imageData.toMap()); // Simpan data sebagai Map
-          String imageUrl = imageData.photo; // Sesuaikan dengan struktur datamu
-          var response = await http.get(Uri.parse(imageUrl));
-
-          Uint8List imageBytes = response.bodyBytes; // Konversi ke byte array
-          String base64Image = base64Encode(imageBytes); // Konversi ke Base64
-
           Map<String, dynamic> dataToStore = {
-            'id': imageData.id, // Data lain dari imageData
-            'title': imageData.title, // Data lain dari imageData
-            'body': imageData.body, // Data lain dari imageData
-            'imageBase64': base64Image, // Simpan gambar sebagai Base64 string
+            'id': imageData.id,
+            'photo': imageData.photo, // Simpan URL gambar sebagai string
+            'title': imageData.title,
+            'body': imageData.body,
           };
           await hiveBox.add(dataToStore);
-
-          List<Map<String, dynamic>> loadedData = [];
-          for (int i = 0; i < hiveBox.length; i++) {
-            Map<String, dynamic> item =
-                Map<String, dynamic>.from(hiveBox.getAt(i));
-            loadedData.add(item);
-          }
-
-          // var lol = imageData.toMap();
-          // print('ini wwwwwwwwwwwww $dataToStore');
-
-          setState(() {
-            _imageUrls = loadedData;
-          });
         }
 
-        // Ambil semua data dari Hive box
+        // Ambil semua data dari Hive box dan perbarui UI
+        List<Map<String, dynamic>> updatedData = [];
+        for (int i = 0; i < hiveBox.length; i++) {
+          Map<String, dynamic> item =
+              Map<String, dynamic>.from(hiveBox.getAt(i));
+          updatedData.add(item);
+        }
 
-        // Perbarui data di UI
+        setState(() {
+          _imageUrls = updatedData;
+        });
       }
     } catch (error) {
       print('Error fetching data from API: $error');
@@ -1221,99 +1205,178 @@ class _BlogwidgetState extends State<Blogwidget> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double fontSize = screenWidth;
+    final bool isTablet = screenWidth > 800;
+    final double cardHeight = isTablet ? 195 : 155;
+    final double imageWidth = isTablet ? 220 : 165;
+
     return _imageUrls.isEmpty
         ? Center(child: CircularProgressIndicator())
-        : SingleChildScrollView(
-            child: Column(
-              children: [
-                Center(
-                  child: Container(
-                    width: MediaQuery.of(context)
-                        .size
-                        .width, // Gunakan lebar layar
-                    child: CarouselSlider(
+        : LayoutBuilder(builder: (context, constraints) {
+            final double viewportFraction =
+                constraints.maxWidth > 600 ? 0.62 : 0.9;
+
+            return SingleChildScrollView(
+              child: Container(
+                width: screenWidth,
+                color: const Color.fromARGB(255, 255, 255, 255),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Last Updates',
+                            style: TextStyle(
+                              fontSize: fontSize * 0.038,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF2C3A4B),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.keyboard_arrow_down_rounded,
+                              size: 20),
+                        ],
+                      ),
+                    ),
+                    CarouselSlider(
                       options: CarouselOptions(
-                        height: 310.0,
-                        aspectRatio: 19 / 19,
-                        viewportFraction: 0.8,
+                        height: cardHeight + 18,
+                        viewportFraction: viewportFraction,
                         initialPage: 0,
                         enableInfiniteScroll: true,
-                        reverse: false,
                         autoPlay: true,
-                        autoPlayInterval: Duration(seconds: 5),
-                        autoPlayAnimationDuration: Duration(milliseconds: 800),
+                        autoPlayInterval: const Duration(seconds: 5),
+                        autoPlayAnimationDuration:
+                            const Duration(milliseconds: 800),
                         autoPlayCurve: Curves.fastOutSlowIn,
-                        enlargeCenterPage: true,
+                        enlargeCenterPage: false,
+                        padEnds: true,
                         scrollDirection: Axis.horizontal,
                       ),
                       items: _imageUrls.map((imageData) {
-                        // Check if 'imageBase64' is not null
-                        String? base64Image = imageData['imageBase64'];
-
-                        // If base64Image is null, return a placeholder widget or handle the error
-                        if (base64Image == null) {
-                          return Center(child: Text('Image not available'));
-                        }
-
-                        // Dekode Base64 menjadi Uint8List
-                        Uint8List decodedBytes = base64Decode(base64Image);
+                        final String imageUrl =
+                            imageData['photo']?.toString() ?? '';
+                        final String title =
+                            imageData['title']?.toString() ?? '-';
+                        final String body = imageData['body']?.toString() ?? '';
 
                         return Builder(
                           builder: (BuildContext context) {
                             return InkWell(
+                              borderRadius: BorderRadius.circular(20),
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => Artikelwidget(
                                       id: imageData['id'],
-                                      title: imageData['title'],
-                                      photo:
-                                          decodedBytes, // Kirim Uint8List hasil decode
-                                      body: imageData['body'],
+                                      title: title,
+                                      photo: imageUrl,
+                                      body: body,
                                     ),
                                   ),
                                 );
                               },
                               child: Container(
-                                margin: EdgeInsets.symmetric(horizontal: 5.0),
+                                margin: const EdgeInsets.symmetric(
+                                    vertical: 6, horizontal: 2),
+                                padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[100],
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
                                 ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        // Tampilkan gambar menggunakan Image.memory
-                                        child: Image.memory(
-                                          decodedBytes,
-                                          fit: BoxFit.cover,
-                                        ),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(14),
+                                      child: SizedBox(
+                                        width: imageWidth,
+                                        height: cardHeight - 14,
+                                        child: imageUrl.isEmpty
+                                            ? Container(
+                                                color: Colors.grey.shade300,
+                                                child: const Icon(
+                                                    Icons.broken_image),
+                                              )
+                                            : CachedNetworkImage(
+                                                imageUrl: imageUrl,
+                                                fit: BoxFit.contain,
+                                                placeholder: (_, __) => Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                  ),
+                                                ),
+                                                errorWidget: (_, __, ___) =>
+                                                    Container(
+                                                  color: Colors.grey.shade300,
+                                                  child: const Icon(
+                                                      Icons.broken_image),
+                                                ),
+                                              ),
                                       ),
-                                      SizedBox(height: 10),
-                                      Center(
-                                        child: Container(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.7,
-                                          child: Text(
-                                            imageData['title'],
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
+                                    ),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            10, 8, 8, 8),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              title,
+                                              maxLines: 2,
+                                              textAlign: TextAlign.center,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: fontSize * 0.03,
+                                                fontWeight: FontWeight.w700,
+                                                color: const Color(0xFF1E2A3A),
+                                                height: 1.2,
+                                              ),
                                             ),
-                                            overflow: TextOverflow
-                                                .visible, // Handle overflow
-                                          ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              body.replaceAll(
+                                                  RegExp(r'<[^>]*>'), ''),
+                                              maxLines: 2,
+                                              textAlign: TextAlign.center,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: fontSize * 0.022,
+                                                color: Colors.grey.shade600,
+                                                height: 1.25,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              'Apr 09, 2026',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: fontSize * 0.02,
+                                                color: Colors.grey.shade500,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );
@@ -1321,10 +1384,244 @@ class _BlogwidgetState extends State<Blogwidget> {
                         );
                       }).toList(),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          );
+              ),
+            );
+          });
   }
 }
+
+// import 'dart:convert';
+
+// import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:carousel_slider/carousel_slider.dart';
+// import 'package:flutter/foundation.dart';
+// import 'package:flutter/material.dart';
+// import 'package:flutter_aag4u/widgets/ArtikelWidget.dart';
+// import 'package:hive/hive.dart';
+// import 'package:http/http.dart' as http;
+
+// class ImageData {
+//   final int id;
+//   final String photo;
+//   final String title;
+//   final String body;
+
+//   ImageData({
+//     required this.id,
+//     required this.photo,
+//     required this.title,
+//     required this.body,
+//   });
+
+//   Map<String, dynamic> toMap() {
+//     return {
+//       'id': id,
+//       'photo': photo,
+//       'title': title,
+//       'body': body,
+//     };
+//   }
+
+//   factory ImageData.fromMap(Map<String, dynamic> map) {
+//     return ImageData(
+//       id: map['id'] ?? 0,
+//       photo: map['photo'] ?? '',
+//       title: map['title'] ?? 'Untitled',
+//       body: map['body'] ?? '',
+//     );
+//   }
+// }
+
+// class Blogwidget extends StatefulWidget {
+//   @override
+//   _BlogwidgetState createState() => _BlogwidgetState();
+// }
+
+// class _BlogwidgetState extends State<Blogwidget> {
+//   List<Map<String, dynamic>> _imageUrls = [];
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _loadData(); // Memulai proses mengambil data dari Hive dan API
+//   }
+
+//   Future<List<ImageData>> _fetchImageDataFromApi() async {
+//     try {
+//       final response =
+//           await http.get(Uri.parse('https://app.aag4u.co.id/api/getPostLimit'));
+//       if (response.statusCode == 200) {
+//         List jsonData = json.decode(response.body);
+//         return jsonData.map((item) => ImageData.fromMap(item)).toList();
+//       } else {
+//         throw Exception('Failed to load image data from API');
+//       }
+//     } catch (error) {
+//       throw Exception('Error fetching data from API: $error');
+//     }
+//   }
+
+//   Future<void> _loadData() async {
+//     var hiveBox = await Hive.openBox('dataBox');
+
+//     // Ambil data dari Hive terlebih dahulu
+//     List<Map<String, dynamic>> loadedData = [];
+//     for (int i = 0; i < hiveBox.length; i++) {
+//       Map<String, dynamic> item = Map<String, dynamic>.from(hiveBox.getAt(i));
+//       loadedData.add(item);
+//     }
+
+//     // Tampilkan data dari Hive terlebih dahulu
+//     setState(() {
+//       _imageUrls = loadedData;
+//     });
+
+//     // Coba ambil data dari API dan perbarui Hive jika ada perbedaan
+//     try {
+//       List<ImageData> apiImageData = await _fetchImageDataFromApi();
+
+//       if (!listEquals(apiImageData, loadedData)) {
+//         await hiveBox
+//             .clear(); // Menghapus semua data di Hive sebelum memperbarui
+//         for (var imageData in apiImageData) {
+//           Map<String, dynamic> dataToStore = {
+//             'id': imageData.id,
+//             'photo': imageData.photo, // Simpan URL gambar sebagai string
+//             'title': imageData.title,
+//             'body': imageData.body,
+//           };
+//           await hiveBox.add(dataToStore);
+//         }
+
+//         // Ambil semua data dari Hive box dan perbarui UI
+//         List<Map<String, dynamic>> updatedData = [];
+//         for (int i = 0; i < hiveBox.length; i++) {
+//           Map<String, dynamic> item =
+//               Map<String, dynamic>.from(hiveBox.getAt(i));
+//           updatedData.add(item);
+//         }
+
+//         setState(() {
+//           _imageUrls = updatedData;
+//         });
+//       }
+//     } catch (error) {
+//       print('Error fetching data from API: $error');
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     double screenWidth = MediaQuery.of(context).size.width * 0.9;
+
+//     return _imageUrls.isEmpty
+//         ? Center(child: CircularProgressIndicator())
+//         : SingleChildScrollView(
+//             child: Column(
+//               children: [
+//                 Center(
+//                   child: Container(
+//                     width: MediaQuery.of(context).size.width,
+//                     child: CarouselSlider(
+//                       options: CarouselOptions(
+//                         height: 340.0,
+//                         aspectRatio: 19 / 19,
+//                         viewportFraction: 0.8,
+//                         initialPage: 0,
+//                         enableInfiniteScroll: true,
+//                         reverse: false,
+//                         autoPlay: true,
+//                         autoPlayInterval: Duration(seconds: 5),
+//                         autoPlayAnimationDuration: Duration(milliseconds: 800),
+//                         autoPlayCurve: Curves.fastOutSlowIn,
+//                         enlargeCenterPage: true,
+//                         scrollDirection: Axis.horizontal,
+//                       ),
+//                       items: _imageUrls.map((imageData) {
+//                         String? imageUrl = imageData['photo'];
+
+//                         if (imageUrl == null || imageUrl.isEmpty) {
+//                           return Center(child: Text('Image not available'));
+//                         }
+
+//                         return Builder(
+//                           builder: (BuildContext context) {
+//                             return InkWell(
+//                               onTap: () {
+//                                 Navigator.push(
+//                                   context,
+//                                   MaterialPageRoute(
+//                                     builder: (context) => Artikelwidget(
+//                                       id: imageData['id'],
+//                                       title: imageData['title'],
+//                                       photo: imageData[
+//                                           'photo'], // Gunakan URL gambar
+//                                       body: imageData['body'],
+//                                     ),
+//                                   ),
+//                                 );
+//                               },
+//                               child: Container(
+//                                 margin: EdgeInsets.symmetric(horizontal: 5.0),
+//                                 decoration: BoxDecoration(
+//                                   color: Colors.grey[100],
+//                                   borderRadius: BorderRadius.circular(20),
+//                                 ),
+//                                 child: ClipRRect(
+//                                   borderRadius: BorderRadius.circular(20),
+//                                   child: Column(
+//                                     children: [
+//                                       Container(
+//                                         width:
+//                                             MediaQuery.of(context).size.width,
+//                                         child: CachedNetworkImage(
+//                                           // fadeInDuration: Duration(seconds: 1),
+//                                           imageUrl: imageUrl,
+//                                           fit: BoxFit.cover,
+//                                           placeholder: (context, url) =>
+//                                               Container(
+//                                             width: screenWidth,
+//                                             height: 100,
+//                                             color: Colors.grey,
+//                                             child: Center(
+//                                               child:
+//                                                   CircularProgressIndicator(),
+//                                             ),
+//                                           ),
+//                                         ),
+//                                       ),
+//                                       SizedBox(height: 10),
+//                                       Center(
+//                                         child: Container(
+//                                           width: MediaQuery.of(context)
+//                                                   .size
+//                                                   .width *
+//                                               0.7,
+//                                           child: Text(
+//                                             imageData['title'],
+//                                             style: TextStyle(
+//                                               fontSize: 15,
+//                                               fontWeight: FontWeight.bold,
+//                                             ),
+//                                             overflow: TextOverflow.visible,
+//                                           ),
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                 ),
+//                               ),
+//                             );
+//                           },
+//                         );
+//                       }).toList(),
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           );
+//   }
+// }

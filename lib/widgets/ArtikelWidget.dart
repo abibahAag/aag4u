@@ -100,16 +100,14 @@
 //   }
 // }
 
-// blog_detail_page.dart
-import 'dart:typed_data'; // Import untuk Uint8List
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart'; // Import flutter_html package
 
 class Artikelwidget extends StatelessWidget {
   final int id;
   final String title;
-  final Uint8List photo; // Menggunakan Uint8List untuk gambar
+  final String photo; // Menggunakan Uint8List untuk gambar
   final String body;
 
   const Artikelwidget({
@@ -122,27 +120,62 @@ class Artikelwidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double fontSize = MediaQuery.of(context).size.width;
+    double iconSize = MediaQuery.of(context).size.width;
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        toolbarHeight: screenHeight * 0.05,
+        // backgroundColor: Colors.blueAccent, // Warna background
+        centerTitle: false, // Pastikan title tidak berada di tengah
+        titleSpacing: 0, // Hilangkan jarak antara leading dan title
+        leadingWidth: screenWidth * 0.09,
+        // leading: InkWell(
+        //   onTap: () {
+        //     Navigator.pop(context);
+        //   },
+        //   child: Icon(
+        //     Icons.arrow_back_ios,
+        //     color: Colors.black,
+        //   ),
+        // ),
+        leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Padding(
+            padding: EdgeInsets.only(left: screenHeight * 0.02),
+            child: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+              size: screenWidth * 0.04,
+            ),
+          ),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(fontSize: fontSize * 0.04),
+        ),
+        // titleSpacing: screenWidth * 0.05, // Menambah jarak antara ikon & title
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Tampilkan gambar dari Uint8List menggunakan Image.memory
-            Image.memory(
-              photo, // Gunakan photo yang sudah diterima sebagai Uint8List
-              fit: BoxFit.cover,
+            CachedNetworkImage(
+              imageUrl: photo, // Atur tinggi gambar
+              fit: BoxFit.contain,
               width: double.infinity,
-              height: 250, // Atur tinggi gambar
+              height: screenHeight * 0.4,
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 title,
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: fontSize * 0.04,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -152,16 +185,16 @@ class Artikelwidget extends StatelessWidget {
               child: Html(
                 data: body, // Render HTML content
                 style: {
-                  "body": Style(
-                    fontSize: FontSize(16),
-                    lineHeight: LineHeight(1.5), // Mengatur jarak antar baris
-                    padding: HtmlPaddings.symmetric(vertical: 8.0),
-                    textAlign:
-                        TextAlign.justify, // Mengatur teks agar rata kiri-kanan
-                    textOverflow: TextOverflow.clip,
-                  ),
                   "p": Style(
-                    margin: Margins.only(bottom: 10.0), // Jarak antar paragraf
+                      fontSize: FontSize(fontSize * 0.04),
+                      lineHeight: LineHeight(1.5)),
+                  "font": Style(
+                    fontFamily: 'CircularStd-book',
+                    fontSize: FontSize(fontSize * 0.04),
+                  ),
+                  "span": Style(
+                    fontWeight: FontWeight.bold,
+                    fontSize: FontSize(fontSize * 0.04),
                   ),
                 },
               ),

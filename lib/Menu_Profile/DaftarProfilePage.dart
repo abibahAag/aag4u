@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_aag4u/Menu_Permintaan_Survey/widget/SimulasiHargaWidget.dart';
 import 'package:flutter_aag4u/pages/homepage.dart';
 import 'package:flutter_aag4u/pages/profilePage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -50,39 +51,49 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
   }
 
   // Menyimpan status login google ke Hive
+
   Future<void> _saveLoginStatus(bool status) async {
-    // await loginBox.put('isLoggedIn', status);
-    // if (status && _currentUser != null) {
-    await http.post(
-      Uri.parse('https://app.aag4u.co.id/api/addUserGoogle'),
-      body: jsonEncode({
-        'name': _currentUser!.displayName,
-        'email': _currentUser!.email,
-        'photo': _currentUser!.photoUrl,
-      }),
-      headers: {'Content-Type': 'application/json'},
-    );
+    final loginBox = Hive.box('loginBox'); // Hive box sudah dibuka sebelumnya
+    if (status && _currentUser != null) {
+      // Simpan data pengguna di Hive
+      await loginBox.put('isLoggedIn', true);
+      await loginBox.put('name', _currentUser!.displayName);
+      await loginBox.put('email', _currentUser!.email);
+      await loginBox.put('photo', _currentUser!.photoUrl);
 
-    await loginBox.put('name', _currentUser!.displayName);
-    await loginBox.put('email', _currentUser!.email);
-    await loginBox.put('photo', _currentUser!.photoUrl);
+      // Kirim data ke server untuk pengguna Google
+      try {
+        final response = await http.post(
+          Uri.parse('https://app.aag4u.co.id/api/addUserGoogle'),
+          body: jsonEncode({
+            'name': _currentUser!.displayName,
+            'email': _currentUser!.email,
+            'photo': _currentUser!.photoUrl,
+          }),
+          headers: {'Content-Type': 'application/json'},
+        );
 
-// Setelah proses login berhasil, pindahkan ke halaman HomePage
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => homePage(isLoggedIn: true, isRegistered: false),
-      ),
-    );
-   
-                setState(() {
-                  _name = isiBox!.get('name');
-                  _email = isiBox!.get('email');
-                  _photoUrl = isiBox!.get('photo');
-                });
-      
+        if (response.statusCode == 200) {
+          print("Data pengguna berhasil disimpan ke server.");
+        } else {
+          print("Gagal menyimpan data pengguna ke server: ${response.body}");
+        }
+      } catch (e) {
+        print("Error saat menyimpan data pengguna ke server: $e");
+      }
+
+      // Segera panggil fungsi `saveTokenToApi` setelah data login berhasil disimpan
+      await saveTokenToApi();
+    } else {
+      await loginBox.put('isLoggedIn', false);
+    }
+
+    setState(() {
+      _name = loginBox.get('name');
+      _email = loginBox.get('email');
+      _photoUrl = loginBox.get('photo');
+    });
   }
-
 
 // Memuat status login dari Hive
   Future<void> _loadLoginStatus() async {
@@ -98,7 +109,7 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
     });
     // }
   }
-  
+
   // Fungsi untuk logout dan hapus data di Hive
   Future<void> _handleSignOut() async {
     await _googleSignIn.signOut();
@@ -109,6 +120,53 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
       _email = null;
       _photoUrl = null;
     });
+  }
+
+  Future<void> saveTokenToApi() async {
+    final loginBox = await Hive.openBox('loginBox');
+    final tokenBox = await Hive.openBox('tokenBox');
+
+    final email = loginBox.get('email');
+    final token = tokenBox.get('token');
+    final tokenbearer = tokenBox.get('tokenbearer');
+    print("Mengirim data hivebox: $email");
+
+    if (email != null) {
+      final url = Uri.parse('https://app.aag4u.co.id/api/updateToken');
+      final headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $tokenbearer',
+      };
+      final data = {
+        'email': email,
+        'token': token,
+        'bearer': tokenbearer, // Pastikan format sesuai API
+      };
+
+      print("Mengirim data ke API: $data");
+
+      try {
+        final response = await http.post(
+          url,
+          headers: headers,
+          body: json.encode(data),
+        );
+
+        print("Response: ${response.body}");
+
+        if (response.statusCode == 200) {
+          print("Token berhasil disimpan ke API.");
+        } else {
+          print(
+              "Gagal menyimpan token ke API. Status code: ${response.statusCode}");
+        }
+      } catch (e) {
+        print("Error saat mengirim token ke API: $e");
+      }
+    } else {
+      print(
+          "Email, token, atau token bearer tidak tersedia. Data tidak dikirim.");
+    }
   }
 
   void _submitForm() async {
@@ -170,12 +228,13 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
         final surveyId = responseData['idi'];
         // print(' bvb b vvgcgcgcg: ${response.statusCode}');
 
-        
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                homePage(isRegistered: true, isLoggedIn: false), // Set true jika sudah register
+            builder: (context) => homePage(
+                isRegistered: true,
+                isLoggedIn: false,
+                initialTabIndex: 0), // Set true jika sudah register
           ),
         );
       } else {
@@ -183,7 +242,6 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
       }
     }
   }
-
 
   String? _errorMessagenama; // Untuk menyimpan pesan kesalahan
   String? _errorMessageemail; // Untuk menyimpan pesan kesalahan
@@ -231,28 +289,63 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
   }
 
   Future<void> _handleSignIn() async {
+
+    final isiLog = await Hive.openBox('loginBox');
+    final mail = isiLog.get('email');
+    // int parsedId = int.parse(widget.id); // Mengonversi widget.id menjadi int
+
     try {
       await _googleSignIn.signIn();
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => homePage(
+              isRegistered: false, isLoggedIn: false,
+               initialTabIndex: 4, // langsung ke ProfilePage,
+            ),
+          ),
+          (route) => false, // Menghapus semua rute sebelumnya
+        );
+      
     } catch (error) {
-      print('Sign-in failed: $error');
+      print(error);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     double inWidth = MediaQuery.of(context).size.width * 0.8;
-    double screenWidth = MediaQuery.of(context).size.width * 1;
+
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenheight = MediaQuery.of(context).size.height;
+    double iconSize = MediaQuery.of(context).size.width;
+    double fontSize = MediaQuery.of(context).size.width;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        automaticallyImplyLeading: true,
+        // automaticallyImplyLeading: true,
         // appBar: Navbar(),
+        toolbarHeight: screenheight * 0.07,
+
+        leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+              size: screenWidth * 0.04,
+            ),
+          ),
+        ),
 
         title: Container(
           // color: Colors.amber,
-          width: 250,
-          // height: 300,
+          // width: screenWidth * 0.3,
+          // height: screenheight * 0.06,
           child: Column(
             children: [
               Container(
@@ -264,8 +357,8 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                         Container(
                           child: Image.asset(
                             "images/icons/aagu.png",
-                            height: 100,
-                            width: 100,
+                            height: screenheight * 0.2,
+                            width: screenWidth * 0.2,
                           ),
                         ),
                         // Text(
@@ -311,7 +404,7 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                               Text(
                                 "Sign Up",
                                 style: TextStyle(
-                                    fontSize: 40,
+                                    fontSize: fontSize * 0.05,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF233d63)),
                               ),
@@ -320,7 +413,12 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                           Row(
                             children: [
                               Column(
-                                children: [Text("Hello! let's join with us")],
+                                children: [
+                                  Text(
+                                    "Hello! let's join with us",
+                                    style: TextStyle(fontSize: fontSize * 0.04),
+                                  )
+                                ],
                               )
                             ],
                           )
@@ -332,7 +430,7 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
               ],
             ),
             SizedBox(
-              height: 50,
+              height: screenheight * 0.05,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -341,8 +439,8 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                   children: [
                     Container(
                       // color: Colors.blue,
-                      width: screenWidth,
-                      // height: 400,
+                      width: screenWidth * 0.9,
+                      height: screenheight * 0.6,
                       child: Form(
                         key: _formKey,
                         child: Row(
@@ -366,8 +464,10 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                   Row(
                                                     children: [
                                                       Container(
-                                                        width: inWidth,
-                                                        height: 50,
+                                                        width:
+                                                            screenWidth * 0.9,
+                                                        height:
+                                                            screenheight * 0.06,
                                                         decoration:
                                                             BoxDecoration(
                                                           // color: Colors.amber,
@@ -386,6 +486,10 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                           top: 5,
                                                         ),
                                                         child: TextFormField(
+                                                          style: TextStyle(
+                                                              fontSize:
+                                                                  screenWidth *
+                                                                      0.04),
                                                           controller:
                                                               _nameController,
                                                           textAlignVertical:
@@ -398,19 +502,36 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                           textAlign:
                                                               TextAlign.start,
                                                           decoration:
-                                                              const InputDecoration(
-                                                            border: InputBorder
-                                                                .none,
-                                                            prefixStyle:
-                                                                TextStyle(
-                                                              fontSize: 10,
-                                                            ),
-                                                            prefixIcon: Icon(
-                                                              Icons.person,
-                                                              size: 25,
-                                                            ),
-                                                            hintText: 'Nama',
-                                                          ),
+                                                              InputDecoration(
+                                                                  border:
+                                                                      InputBorder
+                                                                          .none,
+                                                                  prefixStyle:
+                                                                      TextStyle(
+                                                                    fontSize:
+                                                                        fontSize *
+                                                                            0.04,
+                                                                  ),
+                                                                  // contentPadding: EdgeInsets.symmetric(
+                                                                  //     vertical:
+                                                                  //         12,
+                                                                  //     horizontal:
+                                                                  //         66), // Tambahkan padding
+
+                                                                  prefixIcon:
+                                                                      Icon(
+                                                                    Icons
+                                                                        .person,
+                                                                    size:
+                                                                        iconSize *
+                                                                            0.04,
+                                                                  ),
+                                                                  hintText:
+                                                                      'Nama',
+                                                                  hintStyle: TextStyle(
+                                                                      fontSize:
+                                                                          fontSize *
+                                                                              0.04)),
                                                           onChanged:
                                                               _validateNama,
                                                         ),
@@ -436,7 +557,10 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                                 _errorMessagenama!,
                                                                 style: TextStyle(
                                                                     color: Colors
-                                                                        .red),
+                                                                        .red,
+                                                                    fontSize:
+                                                                        fontSize *
+                                                                            0.04),
                                                               ),
                                                             ],
                                                           ),
@@ -453,7 +577,7 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                   ],
                                 ),
                                 SizedBox(
-                                  height: 20,
+                                  height: screenheight * 0.02,
                                 ),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -470,8 +594,10 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                   Row(
                                                     children: [
                                                       Container(
-                                                        width: inWidth,
-                                                        height: 50,
+                                                        width:
+                                                            screenWidth * 0.9,
+                                                        height:
+                                                            screenheight * 0.06,
                                                         decoration:
                                                             BoxDecoration(
                                                           border: Border.all(
@@ -489,6 +615,10 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                           top: 5,
                                                         ),
                                                         child: TextFormField(
+                                                          style: TextStyle(
+                                                              fontSize:
+                                                                  screenWidth *
+                                                                      0.04),
                                                           scrollPadding:
                                                               EdgeInsets.only(
                                                                   top: 10),
@@ -504,19 +634,29 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                           textAlign:
                                                               TextAlign.start,
                                                           decoration:
-                                                              const InputDecoration(
-                                                            border: InputBorder
-                                                                .none,
-                                                            prefixStyle:
-                                                                TextStyle(
-                                                              fontSize: 10,
-                                                            ),
-                                                            prefixIcon: Icon(
-                                                              Icons.email,
-                                                              size: 25,
-                                                            ),
-                                                            hintText: 'Email',
-                                                          ),
+                                                              InputDecoration(
+                                                                  border:
+                                                                      InputBorder
+                                                                          .none,
+                                                                  prefixStyle:
+                                                                      TextStyle(
+                                                                    fontSize:
+                                                                        fontSize *
+                                                                            0.04,
+                                                                  ),
+                                                                  prefixIcon:
+                                                                      Icon(
+                                                                    Icons.email,
+                                                                    size:
+                                                                        iconSize *
+                                                                            0.04,
+                                                                  ),
+                                                                  hintText:
+                                                                      'Email',
+                                                                  hintStyle: TextStyle(
+                                                                      fontSize:
+                                                                          fontSize *
+                                                                              0.04)),
                                                           onChanged:
                                                               _validateEmail,
                                                         ),
@@ -532,7 +672,9 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                       child: Text(
                                                         _errorMessageemail!,
                                                         style: TextStyle(
-                                                            color: Colors.red),
+                                                            color: Colors.red,
+                                                            fontSize: fontSize *
+                                                                0.04),
                                                       ),
                                                     ),
                                                 ],
@@ -545,7 +687,7 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                   ],
                                 ),
                                 SizedBox(
-                                  height: 20,
+                                  height: screenheight * 0.02,
                                 ),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -562,12 +704,10 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                   Row(
                                                     children: [
                                                       Container(
-                                                        width: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width *
-                                                            0.8, // Lebar container 80% dari layar
-                                                        height: 50,
+                                                        width:
+                                                            screenWidth * 0.9,
+                                                        height:
+                                                            screenheight * 0.06,
                                                         decoration:
                                                             BoxDecoration(
                                                           // color: Colors
@@ -587,6 +727,10 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                             left:
                                                                 0), // Padding di atas dan kiri
                                                         child: TextFormField(
+                                                          style: TextStyle(
+                                                              fontSize:
+                                                                  screenWidth *
+                                                                      0.04),
                                                           controller:
                                                               _passwordController,
                                                           obscureText:
@@ -605,13 +749,18 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                               InputDecoration(
                                                             border: InputBorder
                                                                 .none,
-                                                            prefixIcon:
-                                                                const Icon(
+                                                            prefixIcon: Icon(
                                                               Icons.lock,
-                                                              size: 25,
+                                                              size:
+                                                                  screenheight *
+                                                                      0.03,
                                                             ),
                                                             hintText:
                                                                 'Password',
+                                                            hintStyle: TextStyle(
+                                                                fontSize:
+                                                                    fontSize *
+                                                                        0.04),
                                                             suffixIcon:
                                                                 IconButton(
                                                               icon: Icon(
@@ -620,6 +769,8 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                                         .visibility
                                                                     : Icons
                                                                         .visibility_off,
+                                                                size: iconSize *
+                                                                    0.04,
                                                               ),
                                                               onPressed: () {
                                                                 setState(() {
@@ -649,7 +800,11 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                       child: Text(
                                                         _errorMessagepassword!,
                                                         style: TextStyle(
-                                                            color: Colors.red),
+                                                            fontSize:
+                                                                fontSize * 0.04,
+                                                            color: const Color
+                                                                .fromARGB(255,
+                                                                247, 247, 247)),
                                                       ),
                                                     ),
                                                 ],
@@ -662,7 +817,7 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                   ],
                                 ),
                                 SizedBox(
-                                  height: 15,
+                                  height: screenheight * 0.02,
                                 ),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -672,8 +827,8 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                         Row(
                                           children: [
                                             Container(
-                                              // width: 100,
-                                              // height: 50,
+                                              // width: screenWidth * 0.07,
+                                              // height: screenheight * 0.06,
                                               child: Column(
                                                 children: [
                                                   Row(
@@ -681,9 +836,11 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                       ElevatedButton(
                                                         style: ButtonStyle(
                                                           fixedSize:
-                                                              WidgetStatePropertyAll(
-                                                                  Size(inWidth,
-                                                                      30)),
+                                                              WidgetStatePropertyAll(Size(
+                                                                  screenWidth *
+                                                                      0.9,
+                                                                  screenheight *
+                                                                      0.06)),
                                                           backgroundColor:
                                                               MaterialStateProperty
                                                                   .all<Color>(Color(
@@ -698,7 +855,9 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                             Text(
                                                               'Submit',
                                                               style: TextStyle(
-                                                                  fontSize: 17,
+                                                                  fontSize:
+                                                                      fontSize *
+                                                                          0.04,
                                                                   color: Colors
                                                                       .white),
                                                             ),
@@ -731,7 +890,11 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                 Column(
                                                   children: [
                                                     Container(
-                                                      child: Text("Or"),
+                                                      child: Text("Or",
+                                                          style: TextStyle(
+                                                              fontSize:
+                                                                  fontSize *
+                                                                      0.04)),
                                                     )
                                                   ],
                                                 )
@@ -767,9 +930,11 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                       ElevatedButton(
                                                         style: ButtonStyle(
                                                           fixedSize:
-                                                              WidgetStatePropertyAll(
-                                                                  Size(inWidth,
-                                                                      30)),
+                                                              WidgetStatePropertyAll(Size(
+                                                                  screenWidth *
+                                                                      0.9,
+                                                                  screenheight *
+                                                                      0.06)),
                                                           backgroundColor:
                                                               MaterialStateProperty
                                                                   .all<Color>(Color
@@ -790,6 +955,8 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                                     .google,
                                                                 color:
                                                                     Colors.blue,
+                                                                size: iconSize *
+                                                                    0.04,
                                                               ),
                                                               SizedBox(
                                                                   width: 10),
@@ -800,7 +967,9 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
                                                                     TextStyle(
                                                                   color: const Color(
                                                                       0xFF233d63),
-                                                                  fontSize: 15,
+                                                                  fontSize:
+                                                                      screenWidth *
+                                                                          0.04,
                                                                   // fontWeight:
                                                                   //     FontWeight.w800,
                                                                 ),
@@ -838,8 +1007,6 @@ class _DaftarProfilePageState extends State<DaftarProfilePage> {
       ),
     );
   }
-
-  
 }
 
 // Widget buildProfilePage() {

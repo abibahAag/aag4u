@@ -102,14 +102,21 @@
 
 // blog_detail_page.dart
 
-import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart'; // Import flutter_html package
+import 'dart:convert';
 
-class Artikelpage extends StatelessWidget {
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:http/http.dart' as http;
+import 'package:internet_connection_checker/internet_connection_checker.dart'; // Import flutter_html package
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+
+class Artikelpage extends StatefulWidget {
   final int id;
   final String title;
   final String photo; // Menggunakan Uint8List untuk gambar
   final String body;
+  final String category;
 
   const Artikelpage({
     Key? key,
@@ -117,32 +124,172 @@ class Artikelpage extends StatelessWidget {
     required this.title,
     required this.photo, // Menggunakan Uint8List yang diterima dari widget sebelumnya
     required this.body,
+    required this.category,
   }) : super(key: key);
+
+  factory Artikelpage.fromJson(Map<String, dynamic> json) {
+    String imageName = json['photo'];
+    String imageUrl = 'https://app.aag4u.co.id/public/image/blog/$imageName';
+    return Artikelpage(
+      id: json['id'],
+      title: json['title'],
+      category: json['category'],
+      photo: imageUrl,
+      body: json['body'] ?? '',
+    );
+  }
+
+  @override
+  State<Artikelpage> createState() => _ArtikelpageState();
+}
+
+class _ArtikelpageState extends State<Artikelpage> {
+  Future<List<Artikelpage>>? futureBlog;
+  bool isConnected = true;
+
+  @override
+  void initState() {
+    super.initState();
+    futureBlog = fetchBlogcategoriid(widget.category);
+    // futureCategori = fetchCategori();
+  }
+
+  Future<List<Artikelpage>> fetchBlogcategoriid(String category) async {
+    isConnected = await InternetConnectionChecker().hasConnection;
+
+    if (isConnected) {
+      try {
+        final response = await http.get(
+          Uri.parse('https://app.aag4u.co.id/api/getPostCatePest/$category'),
+        );
+
+        if (response.statusCode == 200) {
+          List jsonResponse = json.decode(response.body);
+          return jsonResponse
+              .map((data) => Artikelpage.fromJson(data))
+              .toList();
+        } else {
+          throw Exception('Failed to load blog posts');
+        }
+      } catch (e) {
+        print('Error fetching data: $e');
+        return _getPlaceholderBlogs();
+      }
+    } else {
+      return _getPlaceholderBlogs();
+    }
+  }
+
+  List<Artikelpage> _getPlaceholderBlogs() {
+    return [
+      Artikelpage(
+        id: 0,
+        title: '',
+        photo: 'images/assets/No_internet.png',
+        body: 'Please check your internet connection and try again.',
+        category: "",
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width * 1;
+    double inWidth = MediaQuery.of(context).size.width * 0.8;
+    double fontSize = MediaQuery.of(context).size.width;
+    double iconSize = MediaQuery.of(context).size.width;
+    // double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        toolbarHeight: screenHeight * 0.05,
+        // backgroundColor: Colors.blueAccent, // Warna background
+        centerTitle: false, // Pastikan title tidak berada di tengah
+        titleSpacing: 0, // Hilangkan jarak antara leading dan title
+        leadingWidth: screenWidth * 0.09,
+        // leading: InkWell(
+        //   onTap: () {
+        //     Navigator.pop(context);
+        //   },
+        //   child: Icon(
+        //     Icons.arrow_back_ios,
+        //     color: Colors.black,
+        //   ),
+        // ),
+        leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Padding(
+            padding: EdgeInsets.only(left: screenHeight * 0.02),
+            child: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+              size: screenWidth * 0.04,
+            ),
+          ),
+        ),
+        title: Text(
+          widget.title,
+          style: TextStyle(fontSize: fontSize * 0.04),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Tampilkan gambar dari Uint8List menggunakan Image.memory
-            Image.network(
-              photo,
-              // as Uint8List, // Gunakan photo yang sudah diterima sebagai Uint8List
-              fit: BoxFit.cover,
+            SizedBox(
               width: double.infinity,
-              height: 250, // Atur tinggi gambar
+              child: widget.photo.startsWith('http')
+                  ? CachedNetworkImage(
+                      imageUrl: widget.photo,
+                      fit: BoxFit.fitWidth,
+                      alignment: Alignment.topCenter,
+                      placeholder: (context, url) => AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: Container(
+                          color: Colors.grey.shade200,
+                          alignment: Alignment.center,
+                          child: const CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        color: Colors.grey.shade200,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.broken_image_outlined,
+                          size: 48,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    )
+                  : Image.asset(
+                      widget.photo,
+                      fit: BoxFit.fitWidth,
+                      alignment: Alignment.topCenter,
+                      width: double.infinity,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        color: Colors.grey.shade200,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.broken_image_outlined,
+                          size: 48,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                title,
+                widget.title,
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: fontSize * 0.04,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -150,21 +297,116 @@ class Artikelpage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Html(
-                data: body, // Render HTML content
+                data: widget.body,
                 style: {
-                  "body": Style(
-                    fontSize: FontSize(16),
-                    lineHeight: LineHeight(1.5), // Mengatur jarak antar baris
-                    padding: HtmlPaddings.symmetric(vertical: 8.0),
-                    textAlign:
-                        TextAlign.justify, // Mengatur teks agar rata kiri-kanan
-                    textOverflow: TextOverflow.clip,
-                  ),
                   "p": Style(
-                    margin: Margins.only(bottom: 10.0), // Jarak antar paragraf
+                      fontSize: FontSize(fontSize * 0.04),
+                      lineHeight: LineHeight(1.5)),
+                  "font": Style(
+                    fontFamily: 'CircularStd-book',
+                    fontSize: FontSize(fontSize * 0.04),
+                  ),
+                  "span": Style(
+                    fontWeight: FontWeight.bold,
+                    fontSize: FontSize(fontSize * 0.04),
+                  ),
+                  "img": Style(
+                    display: Display.block,
+                    width: Width(100, Unit.percent),
+                    height: Height.auto(),
                   ),
                 },
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Text("Blog Lainnya",
+                  style: TextStyle(
+                      fontSize: fontSize * 0.04, fontWeight: FontWeight.bold)),
+            ),
+            FutureBuilder<List<Artikelpage>>(
+              future: futureBlog,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: LoadingAnimationWidget.inkDrop(
+                      color: Color.fromARGB(255, 34, 20, 227),
+                      size: 50,
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("${snapshot.error}"));
+                } else if (snapshot.hasData) {
+                  List<Artikelpage> posts = snapshot.data!.reversed.take(4).toList();
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    // physics: NeverScrollableScrollPhysics(),
+                    itemCount: posts.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 2.0,
+                      mainAxisSpacing: 5.0,
+                      childAspectRatio: 0.8,
+                    ),
+                    itemBuilder: (context, index) {
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Artikelpage(
+                                id: posts[index].id,
+                                title: posts[index].title,
+                                photo: posts[index].photo,
+                                body: posts[index].body,
+                                category: posts[index].category,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Card(
+                          margin: EdgeInsets.all(5.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: CachedNetworkImage(
+                                  imageUrl: posts[index].photo,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    height: 100,
+                                    color: Colors.grey,
+                                    child: Center(
+                                        child: CircularProgressIndicator()),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  posts[index].title,
+                                  style: TextStyle(
+                                      fontSize: fontSize * 0.04,
+                                      fontWeight: FontWeight.bold),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                } else {
+                  return Center(
+                      child: Text(
+                    "No data available",
+                    style: TextStyle(fontSize: fontSize * 0.04),
+                  ));
+                }
+              },
             ),
           ],
         ),

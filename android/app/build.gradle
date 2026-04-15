@@ -9,24 +9,18 @@ plugins {
 }
 
 
-
-android {
-     kotlinOptions {
-        jvmTarget = '1.8'
-    }
-    compileSdkVersion 33
-    defaultConfig {
-        applicationId "com.flutter.aag4u"
-        minSdkVersion 23
-        targetSdkVersion 33
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    }
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+    // implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'com.google.android.play:feature-delivery:2.1.0'
+    implementation 'com.google.android.play:asset-delivery:2.1.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.6.0"
     implementation 'androidx.core:core-ktx:1.10.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
@@ -58,10 +52,17 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.flutter_aag4u"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // compileSdk 36: required by awesome_notifications 0.11+; backward compatible with targetSdk 35
+    compileSdk = 36
+    // NDK r28+ aligns native libs for 16 KB pages; install via SDK Manager if missing
+    ndkVersion = "28.0.13004108"
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -72,16 +73,31 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+    signingConfigs {
+        release {
+            storeFile file("key.jks")
+            storePassword "@atrindo2025"
+            keyAlias "key"
+            keyPassword "@atrindo2025"
+        }
     }
 
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            signingConfig = signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }

@@ -4,6 +4,8 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   awesome_notifications
+  flutter_secure_storage_linux
+  syncfusion_pdfviewer_linux
   url_launcher_linux
 )
 

@@ -684,10 +684,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Permintaan_Survey/widget/SurveyResultWidget.dart';
+import 'package:flutter_aag4u/pages/homepage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:intl/intl.dart'; // Untuk validasi dan format tanggal
+import 'package:intl/intl.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart'; // Untuk validasi dan format tanggal
 
 // Model class for Cabang
 class Hama {
@@ -749,6 +751,15 @@ class Kota {
 }
 
 class SimulasiHargaWidget extends StatefulWidget {
+  const SimulasiHargaWidget({
+    super.key,
+    required bool isRegistered,
+    required bool login,
+    required bool isLoggedIn,
+    required String url,
+    // required String url
+  });
+
   @override
   _SimulasiHargaWidgetState createState() => _SimulasiHargaWidgetState();
 }
@@ -776,6 +787,9 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
   Provinsi? selectedProvinsi;
   Kota? selectedKota;
   String? selectedItem;
+  bool _isLoadingdata = true;
+  bool hasInternet = true;
+
   // String? futureHarga;
   // String? selectedPrice;
   // String? harga; // Variable untuk menyimpan harga
@@ -783,6 +797,9 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
   @override
   void initState() {
     super.initState();
+    // final box = Hive.box('loginBox');
+    // box.delete('after_login');
+    // Hive.box('loginBox').delete('after_login');
     // futureHama = fetchItems();
     futureProvinsi = fetchProvinsi();
 
@@ -811,25 +828,27 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
 
   Future<List<HamaItem>> fetchItems() async {
     isConnected = await InternetConnectionChecker().hasConnection;
+    setState(() {
+      _isLoadingdata = true;
+    });
 
-    if (isConnected) {
-      try {
-        final response =
-            await http.get(Uri.parse('https://app.aag4u.co.id/api/getPest'));
+    try {
+      final response =
+          await http.get(Uri.parse('https://app.aag4u.co.id/api/getPest'));
 
-        if (response.statusCode == 200) {
-          List jsonResponse = json.decode(response.body);
-          List<HamaItem> hama =
-              jsonResponse.map((data) => HamaItem.fromJson(data)).toList();
-          return hama;
-        } else {
-          throw Exception('Failed to load blog posts');
-        }
-      } catch (e) {
-        print('Error fetching data: $e');
-        return _getPlaceholderhama();
+      if (response.statusCode == 200) {
+        List jsonResponse = json.decode(response.body);
+        List<HamaItem> hama =
+            jsonResponse.map((data) => HamaItem.fromJson(data)).toList();
+        setState(() {
+          _isLoadingdata = false;
+        });
+        return hama;
+      } else {
+        throw Exception('Failed to load blog posts');
       }
-    } else {
+    } catch (e) {
+      print('Error fetching data: $e');
       return _getPlaceholderhama();
     }
   }
@@ -914,9 +933,7 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
   // void _submitForm() async {
   //   if (_formKey.currentState!.validate()) {
   //     _formKey.currentState!.save();
-
   //     List<int> selectedHamaIds = _selectedItemIds.toList();
-
   //     // Memeriksa apakah ada data yang kosong
   //     if (selectedHamaIds.isEmpty ||
   //         selectedProvinsi == null ||
@@ -953,7 +970,6 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
   //     //   );
   //     //   return; // Keluar dari fungsi jika ada data yang kosong
   //     // }
-
   //     final data = {
   //       'hama': selectedHamaIds,
   //       'provinsi': selectedProvinsi?.name,
@@ -965,21 +981,16 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
   //       'jam': _timeController.text, // Menambahkan jam ke request body
   //       // 'email': , // Menambahkan dari hive box login
   //     };
-
   //     print('Request data: $data');
-
   //     final response = await http.post(
   //       Uri.parse('https://app.aag4u.co.id/api/survey'),
   //       headers: {'Content-Type': 'application/json'},
   //       body: json.encode(data),
   //     );
-
   //     print('Response body: ${response.body}');
-
   //     if (response.statusCode == 200) {
   //       final responseData = json.decode(response.body) as Map<String, dynamic>;
   //       final surveyId = responseData['idi'];
-
   //       Navigator.push(
   //         context,
   //         MaterialPageRoute(
@@ -991,7 +1002,10 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
   //     }
   //   }
   // }
+
   void _submitForm() async {
+    double fontSize = MediaQuery.of(context).size.height * 0.02;
+
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -1011,18 +1025,19 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
             return AlertDialog(
               title: Text(
                 'Warning!!!',
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(color: Colors.red, fontSize: fontSize * 0.04),
               ),
               content: Text(
                 'Semua data harus diisi, kecuali Hama dan kolom Hama tambahan.',
-                style: TextStyle(fontSize: 15),
+                style: TextStyle(fontSize: fontSize * 0.04),
               ),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('OK'),
+                  child:
+                      Text('OK', style: TextStyle(fontSize: fontSize * 0.04)),
                 ),
               ],
             );
@@ -1143,1095 +1158,1445 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
     return null;
   }
 
+  String? _address(String? value) {
+    if (value == null || value.isEmpty) {
+      return ' Masukkan Detail Alamat';
+    }
+    return null;
+  }
+
+  String? _whatsapp(String? value) {
+    if (value == null || value.isEmpty) {
+      return ' Maukkan Nomor Whatsapp';
+    }
+    return null;
+  }
+
   Future<void> _selectDate() async {
-    DateTime? selectedDate = await showDatePicker(
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      lastDate: DateTime(2101),
+      initialEntryMode: screenWidth > 600
+          ? DatePickerEntryMode.calendarOnly
+          : DatePickerEntryMode.calendar, // Mode berbeda untuk tablet
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaleFactor:
+                screenWidth > 600 ? 1.9 : 1.0, // Perbesar teks di tablet
+          ),
+          child: child!,
+        );
+      },
     );
 
-    if (selectedDate != null) {
+    if (pickedDate != null) {
       setState(() {
-        _dateController.text = DateFormat('yyyy-MM-dd').format(selectedDate);
+        _dateController.text =
+            "${pickedDate.toLocal()}".split(' ')[0]; // Format yyyy-MM-dd
       });
     }
   }
 
-  Future<void> _selectTime() async {
-    // Menampilkan time picker
-    TimeOfDay? selectedTime = await showTimePicker(
+  // Future<void> _selectTime() async {
+  //   double fontSize = MediaQuery.of(context).size.height * 0.02;
+
+  //   // Menampilkan time picker
+  //   TimeOfDay? selectedTime = await showTimePicker(
+  //     context: context,
+  //     initialTime: TimeOfDay.now(),
+  //   );
+
+  //   if (selectedTime != null) {
+  //     // Konversi TimeOfDay menjadi DateTime untuk perbandingan
+  //     final now = DateTime.now();
+  //     final selectedDateTime = DateTime(
+  //         now.year, now.month, now.day, selectedTime.hour, selectedTime.minute);
+  //     final startTime =
+  //         DateTime(now.year, now.month, now.day, 8, 0); // Jam 8 pagi
+  //     final endTime =
+  //         DateTime(now.year, now.month, now.day, 17, 0); // Jam 5 sore
+
+  //     // Cek apakah waktu yang dipilih berada dalam rentang yang diperbolehkan
+  //     if (selectedDateTime.isAfter(startTime) &&
+  //         selectedDateTime.isBefore(endTime)) {
+  //       // Format waktu dan masukkan ke controller
+  //       setState(() {
+  //         _timeController.text = selectedTime.format(context);
+  //       });
+  //     } else {
+  //       // Jika waktu tidak valid, tampilkan pesan kesalahan
+  //       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  //         content: Text('Harap pilih waktu antara pukul 08:00 - 17:00',
+  //             style: TextStyle(fontSize: fontSize * 0.04)),
+  //       ));
+  //     }
+  //   }
+  // }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(alwaysUse24HourFormat: true), // Paksa 24 jam
+          child: child!,
+        );
+      },
     );
 
-    if (selectedTime != null) {
-      // Konversi TimeOfDay menjadi DateTime untuk perbandingan
-      final now = DateTime.now();
-      final selectedDateTime = DateTime(
-          now.year, now.month, now.day, selectedTime.hour, selectedTime.minute);
-      final startTime =
-          DateTime(now.year, now.month, now.day, 8, 0); // Jam 8 pagi
-      final endTime =
-          DateTime(now.year, now.month, now.day, 17, 0); // Jam 5 sore
+    if (picked != null) {
+      // Konversi ke format jam:menit (24 jam)
+      final formattedTime = DateFormat('HH:mm').format(
+        DateTime(0, 1, 1, picked.hour, picked.minute),
+      );
 
-      // Cek apakah waktu yang dipilih berada dalam rentang yang diperbolehkan
-      if (selectedDateTime.isAfter(startTime) &&
-          selectedDateTime.isBefore(endTime)) {
-        // Format waktu dan masukkan ke controller
-        setState(() {
-          _timeController.text = selectedTime.format(context);
-        });
-      } else {
-        // Jika waktu tidak valid, tampilkan pesan kesalahan
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Harap pilih waktu antara pukul 08:00 - 17:00'),
-        ));
+      final int selectedInMinutes = picked.hour * 60 + picked.minute;
+      final int startOperational = 8 * 60; // 08:00 = 480 menit
+      final int endOperational = 17 * 60; // 17:00 = 1020 menit
+
+      if (selectedInMinutes < startOperational ||
+          selectedInMinutes > endOperational) {
+        // Jika waktu tidak dalam rentang operasional, tampilkan alert
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Di Luar Jam Oprational"),
+            content: Text("Jam yang dipilih harus antara 08:00 sampai 17:00."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("OK"),
+              )
+            ],
+          ),
+        );
+        return;
       }
+
+      setState(() {
+        _timeController.text = formattedTime;
+      });
     }
   }
 
   // bool _isFormVisible = false;
 
+  Future<void> _loadingData() async {
+    // Simulasi delay untuk menunjukkan loading
+    await Future.delayed(Duration(seconds: 5));
+    setState(() {
+      _isLoadingdata = true; // Selesai memuat data
+    });
+  }
+
+  Future<void> _checkInternetConnection() async {
+    bool isConnected = await InternetConnectionChecker().hasConnection;
+    if (mounted) {
+      setState(() {
+        hasInternet = isConnected;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width * 0.9;
+    double screenWidth = MediaQuery.of(context).size.width * 1.0;
+    double screenheight = MediaQuery.of(context).size.height;
     double titleWidth = MediaQuery.of(context).size.width * 0.8;
 
-    double inWidth = MediaQuery.of(context).size.width * 0.8;
+    double inWidth = MediaQuery.of(context).size.width;
+    double inheight = MediaQuery.of(context).size.height;
+    double inWidth1 = MediaQuery.of(context).size.width * 0.10;
     double inWidthhama = MediaQuery.of(context).size.width * 0.6;
     double inputWidth = MediaQuery.of(context).size.width * 0.8;
+    double inWidthContainer = MediaQuery.of(context).size.width * 0.95;
+    double inputheightContainer = MediaQuery.of(context).size.width;
+    double inWidthisi = MediaQuery.of(context).size.width * 0.8;
+    double inputheightisi = MediaQuery.of(context).size.height * 0.03;
+    double fontSize = MediaQuery.of(context).size.height;
+    double fontSize2 = MediaQuery.of(context).size.height * 0.02;
+    double iconSize = MediaQuery.of(context).size.height;
+    double screenWidtAppBar = MediaQuery.of(context).size.width;
 
-    return RefreshIndicator(
-      onRefresh: _refreshData,
-      child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+    return Scaffold(
+        appBar: AppBar(
+          toolbarHeight: screenWidtAppBar * 0.10,
+          // backgroundColor: Colors.amber,
+          leading: IconButton(
+            padding: EdgeInsets.only(bottom: 30),
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+              size: iconSize * 0.02,
+            ),
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      homePage(
+                    isRegistered: false,
+                    // login: false,
+                    isLoggedIn: false,
+                    initialTabIndex: 0,
+                  ),
+                ),
+                (route) => false, // Menghapus semua rute sebelumnya
+              );
+            },
+          ),
+          title: Container(
+            // color: Colors.amber,
+            // height: 300,
+            child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 15.0),
-                      child: Column(
+                Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Column(
                         children: [
                           Container(
-                            width: screenWidth,
-                            height: 100,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Color(0xFF233d63),
-                              borderRadius: BorderRadius.circular(24),
+                            child: Image.asset(
+                              "images/icons/aag.png",
+                              height: iconSize * 0.07,
+                              width: iconSize * 0.07,
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                          ),
+                          // Text(
+                          //   "data",
+                          //   style: TextStyle(color: Colors.black, fontSize: 5),
+                          // )
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            Container(
+              width: iconSize * 0.09,
+              // color: Colors.amber,
+              child: Align(
+                alignment: Alignment.topCenter, // Posisikan ikon ke atas
+                child: IconButton(
+                  padding: EdgeInsets.only(bottom: 10),
+                  icon: Icon(
+                    Icons.refresh,
+                    size: iconSize * 0.05,
+                  ),
+                  onPressed: () async {
+                    setState(() {});
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+        body: hasInternet
+            ? SafeArea(
+                child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    RefreshIndicator(
+                      onRefresh: _refreshData,
+                      child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      "Permintaan Survey",
-                                      style: TextStyle(
-                                          fontSize: 25,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0, vertical: 15.0),
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            width: inWidthContainer,
+                                            height: inheight * 0.1,
+                                            alignment: Alignment.center,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xFF233d63),
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
+                                            ),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Text(
+                                                      "Permintaan Survey",
+                                                      style: TextStyle(
+                                                          fontSize:
+                                                              fontSize * 0.02,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.white),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                RefreshIndicator(
-                  onRefresh: _refreshData,
-                  child: FutureBuilder<bool>(
-                    future: InternetConnectionChecker().hasConnection,
-                    builder: (context, snapshot) {
-                      // if (snapshot.connectionState == ConnectionState.waiting) {
-                      //   return Center(child: CircularProgressIndicator());
-                      // } else
-                      if (snapshot.hasError) {
-                        return Center(child: Text("Error: ${snapshot.error}"));
-                      } else if (snapshot.hasData && snapshot.data == true) {
-                        // Internet is available
-                        return RefreshIndicator(
-                          onRefresh: _refreshData,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 0, right: 0),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        Container(
-                                          width: screenWidth,
-                                          height: 950,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                                style: BorderStyle.solid,
-                                                color: Colors.grey),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(24)),
-                                          ),
-                                          child: Form(
-                                            key: _formKey,
-                                            child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Column(
+                                RefreshIndicator(
+                                  onRefresh: _refreshData,
+                                  child: FutureBuilder<bool>(
+                                    future: InternetConnectionChecker()
+                                        .hasConnection,
+                                    builder: (context, snapshot) {
+                                      // if (snapshot.connectionState == ConnectionState.waiting) {
+                                      //   return Center(child: CircularProgressIndicator());
+                                      // } else
+                                      if (snapshot.hasError) {
+                                        return Center(
+                                            child: Text(
+                                          "Error: ${snapshot.error}",
+                                          style: TextStyle(
+                                              fontSize: fontSize * 0.04),
+                                        ));
+                                      } else if (snapshot.hasData &&
+                                          snapshot.data == true) {
+                                        // Internet is available
+                                        return _isLoadingdata
+                                            ? Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 150),
+                                                child: Center(
+                                                    child: LoadingAnimationWidget
+                                                        .inkDrop(
+                                                            color: const Color
+                                                                .fromARGB(255,
+                                                                34, 20, 227),
+                                                            size: 50)),
+                                              )
+                                            : RefreshIndicator(
+                                                onRefresh: _refreshData,
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 0, right: 0),
+                                                  child: Column(
                                                     children: [
                                                       Row(
-                                                        // mainAxisAlignment: MainAxisAlignment.center,
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
                                                         children: [
-                                                          Container(
-                                                            padding:
-                                                                EdgeInsets.only(
-                                                                    top: 10),
-                                                            child: Center(
-                                                              child: Column(
-                                                                // crossAxisAlignment:
-                                                                //     CrossAxisAlignment.center,
-                                                                children: [
-                                                                  Row(
-                                                                    children: [
-                                                                      Container(
-                                                                        width:
-                                                                            inWidth,
-                                                                        height:
-                                                                            900,
-                                                                        alignment:
-                                                                            Alignment.center,
-                                                                        decoration:
-                                                                            BoxDecoration(
-                                                                          // color:
-                                                                          //     Colors.amber,
-                                                                          // border: Border.all(
-                                                                          //     style: BorderStyle.solid,
-                                                                          //     color: Colors.grey),
-                                                                          borderRadius:
-                                                                              BorderRadius.all(Radius.circular(24)),
-                                                                        ),
-                                                                        child:
-                                                                            Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.only(
-                                                                            top:
-                                                                                10,
-                                                                            bottom:
-                                                                                10,
-                                                                          ),
-                                                                          child:
-                                                                              Column(
-                                                                            children: [
-                                                                              Row(
-                                                                                children: [
-                                                                                  Column(
-                                                                                    children: [
-                                                                                      Container(
-                                                                                        child: Column(
-                                                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                          children: [
-                                                                                            Row(
-                                                                                              children: [
-                                                                                                Column(
-                                                                                                  children: <Widget>[
-                                                                                                    Container(
-                                                                                                      // color: Colors.blue,
-                                                                                                      // width:,
-
-                                                                                                      height: 30,
-                                                                                                      child: Text(
-                                                                                                        "HAMA",
-                                                                                                        style: TextStyle(
-                                                                                                          fontSize: 15,
-                                                                                                          fontWeight: FontWeight.bold,
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                    )
-                                                                                                  ],
-                                                                                                )
-                                                                                              ],
-                                                                                            ),
-                                                                                            Row(
-                                                                                              children: [
-                                                                                                Padding(
-                                                                                                  padding: const EdgeInsets.all(0),
-                                                                                                  child: Column(
-                                                                                                    children: [
-                                                                                                      RefreshIndicator(
-                                                                                                        onRefresh: _refreshData,
-                                                                                                        child: FutureBuilder<List<HamaItem>>(
-                                                                                                          future: _futureItems,
-                                                                                                          builder: (context, snapshot) {
-                                                                                                            if (snapshot.connectionState == ConnectionState.waiting) {
-                                                                                                              return Center(child: CircularProgressIndicator());
-                                                                                                            } else if (snapshot.hasError) {
-                                                                                                              return Center(child: Text('Error: ${snapshot.error}'));
-                                                                                                            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                                                                                              return Center(child: Text('No items found.'));
-                                                                                                            } else {
-                                                                                                              final items = snapshot.data!;
-
-                                                                                                              return RefreshIndicator(
-                                                                                                                onRefresh: _refreshData,
-                                                                                                                child: Container(
-                                                                                                                  width: inWidth,
-                                                                                                                  height: 50,
-                                                                                                                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                                                                                  decoration: BoxDecoration(
-                                                                                                                    borderRadius: BorderRadius.circular(8.0),
-                                                                                                                    border: Border.all(color: Colors.grey),
-                                                                                                                  ),
-                                                                                                                  child: GestureDetector(
-                                                                                                                    onTap: _showSelectHamaDialog,
-                                                                                                                    child: AbsorbPointer(
-                                                                                                                      child: DropdownButtonFormField<String>(
-                                                                                                                        value: _selectedText,
-                                                                                                                        decoration: InputDecoration(
-                                                                                                                          border: InputBorder.none, // Removes the underline
-                                                                                                                        ),
-                                                                                                                        items: [_selectedText].map(
-                                                                                                                          (text) {
-                                                                                                                            return DropdownMenuItem<String>(
-                                                                                                                              value: text,
-                                                                                                                              child: Container(
-                                                                                                                                width: inWidthhama,
-                                                                                                                                child: Text(
-                                                                                                                                  text ?? 'Pilih Hama',
-                                                                                                                                  // maxLines: 5,
-                                                                                                                                  overflow: TextOverflow.ellipsis,
-                                                                                                                                  // softWrap: true,
-                                                                                                                                ),
-                                                                                                                              ),
-                                                                                                                            );
-                                                                                                                          },
-                                                                                                                        ).toList(),
-                                                                                                                        onChanged: (_) {},
-                                                                                                                      ),
-                                                                                                                    ),
-                                                                                                                  ),
-                                                                                                                ),
-                                                                                                              );
-                                                                                                            }
-                                                                                                          },
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                    ],
-                                                                                                  ),
-                                                                                                ),
-                                                                                              ],
-                                                                                            ),
-                                                                                          ],
-                                                                                        ),
-                                                                                      ),
-                                                                                    ],
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                              SizedBox(height: 5),
-                                                                              Padding(
-                                                                                padding: const EdgeInsets.all(0),
-                                                                                child: Column(
-                                                                                  mainAxisAlignment: MainAxisAlignment.start,
-                                                                                  children: <Widget>[
-                                                                                    Row(
-                                                                                      mainAxisAlignment: MainAxisAlignment.start, // Tempatkan tombol di sebelah kiri
+                                                          Column(
+                                                            children: [
+                                                              Container(
+                                                                width:
+                                                                    screenWidth,
+                                                                height:
+                                                                    inheight *
+                                                                        1.4,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  // color: const Color
+                                                                  //     .fromARGB(
+                                                                  //     87,
+                                                                  //     153,
+                                                                  //     131,
+                                                                  //     8),
+                                                                  // border: Border.all(
+                                                                  //     style: BorderStyle
+                                                                  //         .solid,
+                                                                  //     color: Colors
+                                                                  //         .grey),
+                                                                  borderRadius:
+                                                                      BorderRadius.all(
+                                                                          Radius.circular(
+                                                                              24)),
+                                                                ),
+                                                                child: Form(
+                                                                  key: _formKey,
+                                                                  child: Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .center,
+                                                                      children: [
+                                                                        Column(
+                                                                          children: [
+                                                                            Row(
+                                                                              // mainAxisAlignment: MainAxisAlignment.center,
+                                                                              children: [
+                                                                                Container(
+                                                                                  padding: EdgeInsets.only(top: 10),
+                                                                                  child: Center(
+                                                                                    child: Column(
+                                                                                      // crossAxisAlignment:
+                                                                                      //     CrossAxisAlignment.center,
                                                                                       children: [
-                                                                                        Container(
-                                                                                          // color: Colors.amber,
-                                                                                          width: 130,
-                                                                                          height: 25,
-                                                                                          child: ElevatedButton(
-                                                                                            onPressed: () {
-                                                                                              if (mounted) {
-                                                                                                setState(() {
-                                                                                                  _isFormVisible = !_isFormVisible;
-                                                                                                });
-                                                                                              }
-                                                                                            },
-                                                                                            style: ButtonStyle(
-                                                                                              fixedSize: WidgetStatePropertyAll(Size(100, 10)),
-                                                                                              backgroundColor: WidgetStatePropertyAll(Colors.grey[300]),
-                                                                                            ),
-                                                                                            child: Row(
-                                                                                              // crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                              mainAxisAlignment: MainAxisAlignment.start,
-                                                                                              children: [
-                                                                                                Column(
-                                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                                                        Row(
+                                                                                          children: [
+                                                                                            Container(
+                                                                                              width: inWidthContainer,
+                                                                                              // height: inheight * 1.3,
+                                                                                              alignment: Alignment.center,
+                                                                                              decoration: BoxDecoration(
+                                                                                                // color: Colors.amber,
+                                                                                                border: Border.all(style: BorderStyle.solid, color: Colors.grey),
+                                                                                                borderRadius: BorderRadius.all(Radius.circular(24)),
+                                                                                              ),
+                                                                                              child: Padding(
+                                                                                                padding: const EdgeInsets.only(top: 15, bottom: 10, left: 10, right: 5),
+                                                                                                child: Column(
                                                                                                   children: [
-                                                                                                    Container(
-                                                                                                      // color: Colors.amber,
-                                                                                                      child: Row(
-                                                                                                        children: [
-                                                                                                          Icon(
-                                                                                                            Icons.add,
-                                                                                                            color: Colors.black,
-                                                                                                            size: 15,
-                                                                                                          ),
-                                                                                                          Text(
-                                                                                                            _isFormVisible ? 'Hama lainnya ' : 'Hama lainnya',
-                                                                                                            style: TextStyle(
-                                                                                                              color: Colors.black,
-                                                                                                              fontSize: 10,
-                                                                                                            ),
-                                                                                                          ),
-                                                                                                        ],
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                  ],
-                                                                                                ),
-                                                                                              ],
-                                                                                            ),
-                                                                                          ),
-                                                                                        ),
-                                                                                      ],
-                                                                                    ),
-
-                                                                                    // Tampilkan form jika _isFormVisible adalah true
-                                                                                    if (_isFormVisible) ...[
-                                                                                      SizedBox(height: 10), // Menambahkan jarak antara tombol dan form
-                                                                                      TextField(
-                                                                                        controller: _hamacontroller,
-                                                                                        enableInteractiveSelection: true,
-                                                                                        maxLines: 2,
-                                                                                        decoration: InputDecoration(
-                                                                                          labelText: 'Nama Hama',
-                                                                                          border: OutlineInputBorder(
-                                                                                            borderRadius: BorderRadius.circular(10),
-                                                                                          ),
-                                                                                        ),
-                                                                                      ),
-                                                                                    ],
-                                                                                  ],
-                                                                                ),
-                                                                              ),
-                                                                              // Column(
-                                                                              //   crossAxisAlignment: CrossAxisAlignment.start,
-                                                                              //   children: <Widget>[
-                                                                              //     // Konten lain di sini...
-                                                                              //     ElevatedButton(
-                                                                              //       onPressed: () {
-                                                                              //         setState(() {
-                                                                              //           _isFormVisible = !_isFormVisible; // Toggle visibility of the form
-                                                                              //         });
-                                                                              //       },
-                                                                              //       style: ButtonStyle(
-                                                                              //         fixedSize: WidgetStatePropertyAll(Size(150, 10)),
-                                                                              //         backgroundColor: WidgetStatePropertyAll(Colors.grey[300]),
-                                                                              //       ),
-                                                                              //       child: Container(
-                                                                              //         child: Row(
-                                                                              //           children: [
-                                                                              //             Icon(
-                                                                              //               Icons.add,
-                                                                              //               color: Colors.black,
-                                                                              //               size: 20,
-                                                                              //             ),
-                                                                              //             Text(
-                                                                              //               _isFormVisible ? 'Hama Lainnya' : 'Hama Lainnya',
-                                                                              //               style: TextStyle(
-                                                                              //                 color: Colors.black,
-                                                                              //                 fontSize: 12,
-                                                                              //               ),
-                                                                              //             ),
-                                                                              //           ],
-                                                                              //         ),
-                                                                              //       ),
-                                                                              //     ),
-
-                                                                              //     // Tampilkan form jika _isFormVisible adalah true
-                                                                              //     if (_isFormVisible) ...[
-                                                                              //       SizedBox(height: 10), // Menambahkan jarak antara tombol dan form
-                                                                              //       Container(
-                                                                              //         decoration: BoxDecoration(
-                                                                              //           border: Border.all(
-                                                                              //             color: Colors.grey,
-                                                                              //             width: 1,
-                                                                              //             style: BorderStyle.solid,
-                                                                              //           ),
-                                                                              //           borderRadius: BorderRadius.circular(10),
-                                                                              //         ),
-                                                                              //         padding: EdgeInsets.only(left: 10, top: 10),
-                                                                              //         child: TextField(
-                                                                              //           controller: _hamacontroller,
-                                                                              //           enableInteractiveSelection: true,
-                                                                              //           maxLines: 2,
-                                                                              //           decoration: InputDecoration(
-                                                                              //             hintText: ('Masukkan Hama  '),
-                                                                              //             border: InputBorder.none,
-                                                                              //           ),
-                                                                              //         ),
-                                                                              //       ),
-                                                                              //     ],
-                                                                              //   ],
-                                                                              // ),
-                                                                              SizedBox(height: 20),
-                                                                              Row(
-                                                                                children: [
-                                                                                  Column(
-                                                                                    children: [
-                                                                                      Container(
-                                                                                        child: Column(
-                                                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                          children: [
-                                                                                            Row(
-                                                                                              children: [
-                                                                                                Column(
-                                                                                                  children: <Widget>[
-                                                                                                    Container(
-                                                                                                      // color: Colors.blue,
-                                                                                                      // width:,
-
-                                                                                                      height: 30,
-                                                                                                      child: Text(
-                                                                                                        "PROVINSI",
-                                                                                                        style: TextStyle(
-                                                                                                          fontSize: 15,
-                                                                                                          fontWeight: FontWeight.bold,
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                    )
-                                                                                                  ],
-                                                                                                )
-                                                                                              ],
-                                                                                            ),
-                                                                                            Row(
-                                                                                              children: [
-                                                                                                Padding(
-                                                                                                  padding: const EdgeInsets.all(.0),
-                                                                                                  child: Column(
-                                                                                                    children: [
-                                                                                                      RefreshIndicator(
-                                                                                                        onRefresh: _refreshData,
-                                                                                                        child: FutureBuilder<List<Provinsi>>(
-                                                                                                          future: futureProvinsi,
-                                                                                                          builder: (context, snapshot) {
-                                                                                                            if (snapshot.connectionState == ConnectionState.waiting) {
-                                                                                                              return CircularProgressIndicator();
-                                                                                                            } else if (snapshot.hasError) {
-                                                                                                              return Text('Error: ${snapshot.error}');
-                                                                                                            } else if (snapshot.hasData) {
-                                                                                                              if (snapshot.data!.isEmpty) {
-                                                                                                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                                                                                                  showDialog(
-                                                                                                                    context: context,
-                                                                                                                    builder: (BuildContext context) {
-                                                                                                                      return AlertDialog(
-                                                                                                                        title: Text('Peringatan'),
-                                                                                                                        content: Text('Data harus diisi'),
-                                                                                                                        actions: <Widget>[
-                                                                                                                          TextButton(
-                                                                                                                            onPressed: () {
-                                                                                                                              Navigator.of(context).pop();
-                                                                                                                            },
-                                                                                                                            child: Text('OK'),
-                                                                                                                          ),
-                                                                                                                        ],
-                                                                                                                      );
-                                                                                                                    },
-                                                                                                                  );
-                                                                                                                });
-                                                                                                                return Container(); // Return an empty container or another widget
-                                                                                                              }
-
-                                                                                                              return Container(
-                                                                                                                width: inWidth,
-                                                                                                                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                                                                                decoration: BoxDecoration(
-                                                                                                                  borderRadius: BorderRadius.circular(8.0),
-                                                                                                                  border: Border.all(color: Colors.grey),
-                                                                                                                ),
-                                                                                                                child: DropdownButton<Provinsi>(
-                                                                                                                  hint: Text('Pilih Provinsi'),
-                                                                                                                  value: selectedProvinsi,
-                                                                                                                  onChanged: (Provinsi? newValue) {
-                                                                                                                    setState(() {
-                                                                                                                      selectedProvinsi = newValue;
-                                                                                                                      selectedKota = null; // Reset the Kota selection
-                                                                                                                      if (newValue != null) {
-                                                                                                                        futureKota = fetchKota(newValue.id);
-                                                                                                                      }
-                                                                                                                    });
-                                                                                                                  },
-                                                                                                                  items: snapshot.data!.map((Provinsi provinsi) {
-                                                                                                                    return DropdownMenuItem<Provinsi>(
-                                                                                                                      value: provinsi,
-                                                                                                                      child: Text(
-                                                                                                                        provinsi.name,
-                                                                                                                        style: TextStyle(
-                                                                                                                          fontSize: 12,
-                                                                                                                          fontWeight: FontWeight.bold,
-                                                                                                                        ),
-                                                                                                                      ),
-                                                                                                                    );
-                                                                                                                  }).toList(),
-                                                                                                                ),
-                                                                                                              );
-                                                                                                            } else {
-                                                                                                              return Text('No data');
-                                                                                                            }
-                                                                                                          },
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                    ],
-                                                                                                  ),
-                                                                                                ),
-                                                                                              ],
-                                                                                            ),
-                                                                                          ],
-                                                                                        ),
-                                                                                      ),
-                                                                                    ],
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                              SizedBox(height: 20),
-                                                                              Row(
-                                                                                children: [
-                                                                                  Column(
-                                                                                    children: [
-                                                                                      Container(
-                                                                                        child: Column(
-                                                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                          children: [
-                                                                                            Row(
-                                                                                              children: [
-                                                                                                Column(
-                                                                                                  children: <Widget>[
-                                                                                                    Container(
-                                                                                                      // color: Colors.blue,
-                                                                                                      // width:,
-
-                                                                                                      height: 30,
-                                                                                                      child: Text(
-                                                                                                        "KOTA",
-                                                                                                        style: TextStyle(
-                                                                                                          fontSize: 15,
-                                                                                                          fontWeight: FontWeight.bold,
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                    )
-                                                                                                  ],
-                                                                                                )
-                                                                                              ],
-                                                                                            ),
-                                                                                            Row(
-                                                                                              children: [
-                                                                                                Padding(
-                                                                                                  padding: const EdgeInsets.all(.0),
-                                                                                                  child: Column(
-                                                                                                    children: [
-                                                                                                      FutureBuilder<List<Kota>>(
-                                                                                                        future: futureKota,
-                                                                                                        builder: (context, snapshot) {
-                                                                                                          // if (snapshot.connectionState == ConnectionState.waiting) {
-                                                                                                          //   return CircularProgressIndicator();
-                                                                                                          // } else
-                                                                                                          if (snapshot.hasError) {
-                                                                                                            return Text('Error: ${snapshot.error}');
-                                                                                                          } else if (snapshot.hasData) {
-                                                                                                            return Container(
-                                                                                                              width: inWidth,
-                                                                                                              height: 50,
-                                                                                                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                                                                                                              decoration: BoxDecoration(
-                                                                                                                borderRadius: BorderRadius.circular(8.0),
-                                                                                                                border: Border.all(color: Colors.grey),
-                                                                                                              ),
-                                                                                                              child: DropdownButton<Kota>(
-                                                                                                                hint: Text(
-                                                                                                                  'Pilih Kota',
-                                                                                                                  maxLines: 2,
-                                                                                                                  overflow: TextOverflow.ellipsis,
-                                                                                                                  softWrap: true,
-                                                                                                                ),
-                                                                                                                value: selectedKota,
-                                                                                                                onChanged: (Kota? newValue) {
-                                                                                                                  setState(() {
-                                                                                                                    selectedKota = newValue;
-                                                                                                                  });
-                                                                                                                },
-                                                                                                                items: snapshot.data!.map((Kota kota) {
-                                                                                                                  return DropdownMenuItem<Kota>(
-                                                                                                                    value: kota,
-                                                                                                                    child: ConstrainedBox(
-                                                                                                                      constraints: BoxConstraints(maxWidth: 200), // Sesuaikan lebar maksimum sesuai kebutuhan
-                                                                                                                      child: Text(
-                                                                                                                        kota.name,
-                                                                                                                        style: TextStyle(
-                                                                                                                          fontSize: 12,
-                                                                                                                          fontWeight: FontWeight.bold,
-                                                                                                                        ),
-                                                                                                                        maxLines: 3,
-                                                                                                                        overflow: TextOverflow.visible,
-                                                                                                                        softWrap: true,
-                                                                                                                      ),
-                                                                                                                    ),
-                                                                                                                  );
-                                                                                                                }).toList(),
-                                                                                                              ),
-                                                                                                            );
-                                                                                                          } else {
-                                                                                                            return Container(
-                                                                                                              width: inWidth,
-                                                                                                              height: 60,
-                                                                                                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                                                                              decoration: BoxDecoration(
-                                                                                                                borderRadius: BorderRadius.circular(8.0),
-                                                                                                                border: Border.all(color: Colors.grey),
-                                                                                                              ),
+                                                                                                    Row(
+                                                                                                      children: [
+                                                                                                        Column(
+                                                                                                          children: [
+                                                                                                            Container(
                                                                                                               child: Column(
-                                                                                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                                                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                                                                                 children: [
                                                                                                                   Row(
                                                                                                                     children: [
-                                                                                                                      Text(
-                                                                                                                        'Silakan pilih provinsi',
-                                                                                                                        style: TextStyle(
-                                                                                                                          color: const Color.fromARGB(255, 58, 56, 56),
-                                                                                                                          fontSize: 15,
-                                                                                                                          fontWeight: FontWeight.w500,
+                                                                                                                      Column(
+                                                                                                                        children: <Widget>[
+                                                                                                                          Container(
+                                                                                                                            // color: Colors.blue,
+                                                                                                                            // width:,
+
+                                                                                                                            height: inputheightisi,
+                                                                                                                            child: Text(
+                                                                                                                              "HAMA",
+                                                                                                                              style: TextStyle(
+                                                                                                                                fontSize: fontSize * 0.02,
+                                                                                                                                fontWeight: FontWeight.bold,
+                                                                                                                              ),
+                                                                                                                            ),
+                                                                                                                          )
+                                                                                                                        ],
+                                                                                                                      )
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                  Row(
+                                                                                                                    children: [
+                                                                                                                      Padding(
+                                                                                                                        padding: const EdgeInsets.all(0),
+                                                                                                                        child: Column(
+                                                                                                                          children: [
+                                                                                                                            FutureBuilder<List<HamaItem>>(
+                                                                                                                              future: _futureItems,
+                                                                                                                              builder: (context, snapshot) {
+                                                                                                                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                                                                                                                  return Center(child: Text(''));
+                                                                                                                                } else if (snapshot.hasError) {
+                                                                                                                                  return Center(
+                                                                                                                                      child: Text(
+                                                                                                                                    'Error: ${snapshot.error}',
+                                                                                                                                    style: TextStyle(fontSize: fontSize * 0.04),
+                                                                                                                                  ));
+                                                                                                                                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                                                                                                                  return Center(child: Text('No items found.', style: TextStyle(fontSize: fontSize * 0.04)));
+                                                                                                                                } else {
+                                                                                                                                  final items = snapshot.data!;
+                                                                                                                                  return Container(
+                                                                                                                                    width: inWidth * 0.9,
+                                                                                                                                    height: inheight * 0.07, // Tinggi container luar tetap besar
+                                                                                                                                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                                                                                                                                    decoration: BoxDecoration(
+                                                                                                                                      borderRadius: BorderRadius.circular(8.0),
+                                                                                                                                      border: Border.all(color: Colors.grey),
+                                                                                                                                    ),
+                                                                                                                                    child: GestureDetector(
+                                                                                                                                      onTap: _showSelectHamaDialog,
+                                                                                                                                      child: AbsorbPointer(
+                                                                                                                                          child: DropdownButtonFormField<String>(
+                                                                                                                                        value: _selectedText,
+                                                                                                                                        isExpanded: true,
+                                                                                                                                        // hint: Text(
+                                                                                                                                        //   'Pilih Hama',
+                                                                                                                                        //   style: TextStyle(
+                                                                                                                                        //       fontSize: MediaQuery.of(context).size.height * 0.02, // Ukuran teks responsif
+                                                                                                                                        //       fontWeight: FontWeight.bold,
+                                                                                                                                        //       color: Colors.black),
+                                                                                                                                        // ),
+                                                                                                                                        decoration: InputDecoration(
+                                                                                                                                          // label: Text('Pilih Hama'),
+                                                                                                                                          // labelStyle: TextStyle(fontSize: fontSize * 0.03),
+                                                                                                                                          // hintStyle: TextStyle(fontSize: fontSize * 0.09),
+                                                                                                                                          border: InputBorder.none,
+                                                                                                                                          contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                                                                                                                                        ),
+                                                                                                                                        style: TextStyle(
+                                                                                                                                          fontSize: fontSize * 0.2, // Ukuran teks lebih jelas untuk semua perangkat
+                                                                                                                                          fontWeight: FontWeight.bold,
+                                                                                                                                          color: Colors.black,
+                                                                                                                                        ),
+                                                                                                                                        items: [
+                                                                                                                                          DropdownMenuItem<String>(
+                                                                                                                                            value: _selectedText,
+                                                                                                                                            child: Container(
+                                                                                                                                              width: MediaQuery.of(context).size.width * 0.8, // 80% dari lebar layar
+                                                                                                                                              height: MediaQuery.of(context).size.width > 600 ? 100 : 60, // Tinggi dropdown berbeda untuk tablet dan HP
+                                                                                                                                              alignment: Alignment.centerLeft,
+                                                                                                                                              child: Text(
+                                                                                                                                                _selectedText ?? 'Pilih Hama',
+                                                                                                                                                style: TextStyle(
+                                                                                                                                                  fontSize: MediaQuery.of(context).size.width > 800 ? fontSize2 : fontSize2, // Ukuran teks menyesuaikan perangkat
+                                                                                                                                                  color: Colors.black,
+                                                                                                                                                ),
+                                                                                                                                                overflow: TextOverflow.ellipsis,
+                                                                                                                                              ),
+                                                                                                                                            ),
+                                                                                                                                          ),
+                                                                                                                                        ],
+                                                                                                                                        onChanged: (_) {},
+                                                                                                                                      )),
+                                                                                                                                    ),
+                                                                                                                                  );
+                                                                                                                                }
+                                                                                                                              },
+                                                                                                                            ),
+                                                                                                                          ],
                                                                                                                         ),
                                                                                                                       ),
                                                                                                                     ],
                                                                                                                   ),
                                                                                                                 ],
                                                                                                               ),
-                                                                                                            );
-                                                                                                          }
-                                                                                                        },
-                                                                                                      ),
-                                                                                                    ],
-                                                                                                  ),
-                                                                                                ),
-                                                                                              ],
-                                                                                            ),
-                                                                                          ],
-                                                                                        ),
-                                                                                      ),
-                                                                                    ],
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                              SizedBox(height: 20),
-                                                                              Row(
-                                                                                children: [
-                                                                                  Column(
-                                                                                    children: [
-                                                                                      Row(
-                                                                                        children: [
-                                                                                          Container(
-                                                                                            child: Column(
-                                                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                              children: [
-                                                                                                Row(
-                                                                                                  children: [
-                                                                                                    Column(
-                                                                                                      children: <Widget>[
-                                                                                                        Container(
-                                                                                                          // color: Colors.blue,
-                                                                                                          // width:,
-
-                                                                                                          height: 30,
-                                                                                                          child: Text(
-                                                                                                            "ALAMAT ",
-                                                                                                            style: TextStyle(
-                                                                                                              fontSize: 15,
-                                                                                                              fontWeight: FontWeight.bold,
                                                                                                             ),
-                                                                                                          ),
-                                                                                                        )
+                                                                                                          ],
+                                                                                                        ),
                                                                                                       ],
-                                                                                                    )
-                                                                                                  ],
-                                                                                                ),
-                                                                                                Row(
-                                                                                                  children: [
-                                                                                                    Container(
-                                                                                                      width: inputWidth,
-                                                                                                      height: 90,
-                                                                                                      decoration: BoxDecoration(
-                                                                                                        border: Border.all(
-                                                                                                          color: Colors.grey,
-                                                                                                          width: 1,
-                                                                                                          style: BorderStyle.solid,
-                                                                                                        ),
-                                                                                                        borderRadius: BorderRadius.circular(10),
-                                                                                                      ),
-                                                                                                      padding: EdgeInsets.only(left: 10, top: 10),
-                                                                                                      child: TextFormField(
-                                                                                                        controller: _alamatController,
-                                                                                                        textAlignVertical: TextAlignVertical.center,
-                                                                                                        // autofocus: true,
-                                                                                                        enableInteractiveSelection: true,
-                                                                                                        maxLines: 3,
-                                                                                                        textAlign: TextAlign.start,
-                                                                                                        decoration: const InputDecoration.collapsed(
-                                                                                                          border: InputBorder.none,
-                                                                                                          hintText: ('Info Alamat Lengkap  '),
-                                                                                                        ),
-                                                                                                        validator: (String? value) {
-                                                                                                          if (value == null || value.isEmpty) {
-                                                                                                            return ' Masukkan Detail Alamat';
-                                                                                                          }
-                                                                                                          return null;
-                                                                                                        },
+                                                                                                    ),
+                                                                                                    SizedBox(height: 5),
+                                                                                                    Padding(
+                                                                                                      padding: const EdgeInsets.all(0),
+                                                                                                      child: Column(
+                                                                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                                                                        children: <Widget>[
+                                                                                                          Row(
+                                                                                                            mainAxisAlignment: MainAxisAlignment.start, // Tempatkan tombol di sebelah kiri
+                                                                                                            children: [
+                                                                                                              Container(
+                                                                                                                // color: const Color.fromARGB(255, 48, 7, 255),
+                                                                                                                width: MediaQuery.of(context).size.width * 0.5,
+                                                                                                                height: MediaQuery.of(context).size.width * 0.09,
+                                                                                                                child: ElevatedButton(
+                                                                                                                  onPressed: () {
+                                                                                                                    if (mounted) {
+                                                                                                                      setState(() {
+                                                                                                                        _isFormVisible = !_isFormVisible;
+                                                                                                                      });
+                                                                                                                    }
+                                                                                                                  },
+                                                                                                                  style: ButtonStyle(
+                                                                                                                    fixedSize: WidgetStatePropertyAll(Size(100, 10)),
+                                                                                                                    backgroundColor: WidgetStatePropertyAll(Colors.grey[300]),
+                                                                                                                  ),
+                                                                                                                  child: Row(
+                                                                                                                    // crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                                                                                    children: [
+                                                                                                                      Column(
+                                                                                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                                                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                                                                                        children: [
+                                                                                                                          Container(
+                                                                                                                            // color: Colors.amber,
+                                                                                                                            child: Row(
+                                                                                                                              children: [
+                                                                                                                                Icon(
+                                                                                                                                  Icons.add,
+                                                                                                                                  color: Colors.black,
+                                                                                                                                  size: iconSize * 0.03,
+                                                                                                                                ),
+                                                                                                                                Text(
+                                                                                                                                  _isFormVisible ? 'Hama lainnya ' : 'Hama lainnya',
+                                                                                                                                  style: TextStyle(
+                                                                                                                                    color: Colors.black,
+                                                                                                                                    fontSize: fontSize * 0.02,
+                                                                                                                                  ),
+                                                                                                                                ),
+                                                                                                                              ],
+                                                                                                                            ),
+                                                                                                                          ),
+                                                                                                                        ],
+                                                                                                                      ),
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                ),
+                                                                                                              ),
+                                                                                                            ],
+                                                                                                          ),
+
+                                                                                                          // Tampilkan form jika _isFormVisible adalah true
+                                                                                                          if (_isFormVisible) ...[
+                                                                                                            SizedBox(height: 20), // Menambahkan jarak antara tombol dan form
+                                                                                                            TextField(
+                                                                                                              controller: _hamacontroller,
+                                                                                                              enableInteractiveSelection: true,
+                                                                                                              maxLines: 2,
+                                                                                                              style: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                              decoration: InputDecoration(
+                                                                                                                labelText: 'Nama Hama',
+                                                                                                                labelStyle: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                                border: OutlineInputBorder(
+                                                                                                                  borderRadius: BorderRadius.circular(10),
+                                                                                                                ),
+                                                                                                              ),
+                                                                                                            ),
+                                                                                                          ],
+                                                                                                        ],
                                                                                                       ),
                                                                                                     ),
-                                                                                                  ],
-                                                                                                )
-                                                                                              ],
-                                                                                            ),
-                                                                                          )
-                                                                                        ],
-                                                                                      )
-                                                                                    ],
-                                                                                  )
-                                                                                ],
-                                                                              ),
-                                                                              SizedBox(
-                                                                                height: 20,
-                                                                              ),
-                                                                              Row(
-                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                children: [
-                                                                                  Column(
-                                                                                    children: [
-                                                                                      Row(
-                                                                                        children: [
-                                                                                          Container(
-                                                                                            child: Column(
-                                                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                              children: [
-                                                                                                Row(
-                                                                                                  mainAxisAlignment: MainAxisAlignment.start,
-                                                                                                  children: [
-                                                                                                    Column(
-                                                                                                      children: <Widget>[
-                                                                                                        Container(
-                                                                                                          // color: Colors.blue,
-                                                                                                          // width:,
+                                                                                                    // Column(
+                                                                                                    //   crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                    //   children: <Widget>[
+                                                                                                    //     // Konten lain di sini...
+                                                                                                    //     ElevatedButton(
+                                                                                                    //       onPressed: () {
+                                                                                                    //         setState(() {
+                                                                                                    //           _isFormVisible = !_isFormVisible; // Toggle visibility of the form
+                                                                                                    //         });
+                                                                                                    //       },
+                                                                                                    //       style: ButtonStyle(
+                                                                                                    //         fixedSize: WidgetStatePropertyAll(Size(150, 10)),
+                                                                                                    //         backgroundColor: WidgetStatePropertyAll(Colors.grey[300]),
+                                                                                                    //       ),
+                                                                                                    //       child: Container(
+                                                                                                    //         child: Row(
+                                                                                                    //           children: [
+                                                                                                    //             Icon(
+                                                                                                    //               Icons.add,
+                                                                                                    //               color: Colors.black,
+                                                                                                    //               size: 20,
+                                                                                                    //             ),
+                                                                                                    //             Text(
+                                                                                                    //               _isFormVisible ? 'Hama Lainnya' : 'Hama Lainnya',
+                                                                                                    //               style: TextStyle(
+                                                                                                    //                 color: Colors.black,
+                                                                                                    //                 fontSize: 12,
+                                                                                                    //               ),
+                                                                                                    //             ),
+                                                                                                    //           ],
+                                                                                                    //         ),
+                                                                                                    //       ),
+                                                                                                    //     ),
+                                                                                                    //     // Tampilkan form jika _isFormVisible adalah true
+                                                                                                    //     if (_isFormVisible) ...[
+                                                                                                    //       SizedBox(height: 10), // Menambahkan jarak antara tombol dan form
+                                                                                                    //       Container(
+                                                                                                    //         decoration: BoxDecoration(
+                                                                                                    //           border: Border.all(
+                                                                                                    //             color: Colors.grey,
+                                                                                                    //             width: 1,
+                                                                                                    //             style: BorderStyle.solid,
+                                                                                                    //           ),
+                                                                                                    //           borderRadius: BorderRadius.circular(10),
+                                                                                                    //         ),
+                                                                                                    //         padding: EdgeInsets.only(left: 10, top: 10),
+                                                                                                    //         child: TextField(
+                                                                                                    //           controller: _hamacontroller,
+                                                                                                    //           enableInteractiveSelection: true,
+                                                                                                    //           maxLines: 2,
+                                                                                                    //           decoration: InputDecoration(
+                                                                                                    //             hintText: ('Masukkan Hama  '),
+                                                                                                    //             border: InputBorder.none,
+                                                                                                    //           ),
+                                                                                                    //         ),
+                                                                                                    //       ),
+                                                                                                    //     ],
+                                                                                                    //   ],
+                                                                                                    // ),
+                                                                                                    SizedBox(height: 10),
+                                                                                                    Row(
+                                                                                                      children: [
+                                                                                                        Column(
+                                                                                                          children: [
+                                                                                                            Container(
+                                                                                                              child: Column(
+                                                                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                children: [
+                                                                                                                  Row(
+                                                                                                                    children: [
+                                                                                                                      Column(
+                                                                                                                        children: <Widget>[
+                                                                                                                          Container(
+                                                                                                                            // color: Colors.blue,
+                                                                                                                            // width:,
 
-                                                                                                          height: 30,
-                                                                                                          child: Text(
-                                                                                                            "JADWAL",
-                                                                                                            style: TextStyle(
-                                                                                                              fontSize: 15,
-                                                                                                              fontWeight: FontWeight.bold,
+                                                                                                                            height: inputheightisi,
+                                                                                                                            child: Text(
+                                                                                                                              "PROVINSI",
+                                                                                                                              style: TextStyle(
+                                                                                                                                fontSize: fontSize * 0.02,
+                                                                                                                                fontWeight: FontWeight.bold,
+                                                                                                                              ),
+                                                                                                                            ),
+                                                                                                                          )
+                                                                                                                        ],
+                                                                                                                      )
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                  Row(
+                                                                                                                    children: [
+                                                                                                                      Padding(
+                                                                                                                        padding: const EdgeInsets.all(.0),
+                                                                                                                        child: Column(
+                                                                                                                          children: [
+                                                                                                                            RefreshIndicator(
+                                                                                                                              onRefresh: _refreshData,
+                                                                                                                              child: FutureBuilder<List<Provinsi>>(
+                                                                                                                                future: futureProvinsi,
+                                                                                                                                builder: (context, snapshot) {
+                                                                                                                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                                                                                                                    return CircularProgressIndicator();
+                                                                                                                                  } else if (snapshot.hasError) {
+                                                                                                                                    return Text('Error: ${snapshot.error}', style: TextStyle(fontSize: fontSize * 0.04));
+                                                                                                                                  } else if (snapshot.hasData) {
+                                                                                                                                    if (snapshot.data!.isEmpty) {
+                                                                                                                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                                                                                                        showDialog(
+                                                                                                                                          context: context,
+                                                                                                                                          builder: (BuildContext context) {
+                                                                                                                                            return AlertDialog(
+                                                                                                                                              title: Text('Peringatan'),
+                                                                                                                                              content: Text('Data harus diisi'),
+                                                                                                                                              actions: <Widget>[
+                                                                                                                                                TextButton(
+                                                                                                                                                  onPressed: () {
+                                                                                                                                                    Navigator.of(context).pop();
+                                                                                                                                                  },
+                                                                                                                                                  child: Text('OK'),
+                                                                                                                                                ),
+                                                                                                                                              ],
+                                                                                                                                            );
+                                                                                                                                          },
+                                                                                                                                        );
+                                                                                                                                      });
+                                                                                                                                      return Container(); // Return an empty container or another widget
+                                                                                                                                    }
+
+                                                                                                                                    return Container(
+                                                                                                                                      width: inWidth * 0.9,
+                                                                                                                                      height: inheight * 0.07,
+                                                                                                                                      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                                                                                                                                      decoration: BoxDecoration(
+                                                                                                                                        borderRadius: BorderRadius.circular(8.0),
+                                                                                                                                        border: Border.all(color: Colors.grey),
+                                                                                                                                      ),
+                                                                                                                                      child: DropdownButton<Provinsi>(
+                                                                                                                                        hint: Text(
+                                                                                                                                          'Pilih Provinsi',
+                                                                                                                                          style: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                                                        ),
+                                                                                                                                        value: selectedProvinsi,
+                                                                                                                                        onChanged: (Provinsi? newValue) {
+                                                                                                                                          setState(() {
+                                                                                                                                            selectedProvinsi = newValue;
+                                                                                                                                            selectedKota = null; // Reset the Kota selection
+                                                                                                                                            if (newValue != null) {
+                                                                                                                                              futureKota = fetchKota(newValue.id);
+                                                                                                                                            }
+                                                                                                                                          });
+                                                                                                                                        },
+                                                                                                                                        items: snapshot.data!.map((Provinsi provinsi) {
+                                                                                                                                          return DropdownMenuItem<Provinsi>(
+                                                                                                                                            value: provinsi,
+                                                                                                                                            child: Text(
+                                                                                                                                              provinsi.name,
+                                                                                                                                              style: TextStyle(
+                                                                                                                                                fontSize: fontSize * 0.02,
+                                                                                                                                                // fontWeight: FontWeight.bold,
+                                                                                                                                              ),
+                                                                                                                                              maxLines: 2,
+                                                                                                                                              overflow: TextOverflow.visible,
+                                                                                                                                              softWrap: true,
+                                                                                                                                            ),
+                                                                                                                                          );
+                                                                                                                                        }).toList(),
+                                                                                                                                      ),
+                                                                                                                                    );
+                                                                                                                                  } else {
+                                                                                                                                    return Text('No data', style: TextStyle(fontSize: fontSize * 0.04));
+                                                                                                                                  }
+                                                                                                                                },
+                                                                                                                              ),
+                                                                                                                            ),
+                                                                                                                          ],
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                ],
+                                                                                                              ),
                                                                                                             ),
-                                                                                                          ),
+                                                                                                          ],
+                                                                                                        ),
+                                                                                                      ],
+                                                                                                    ),
+                                                                                                    SizedBox(height: 10),
+                                                                                                    Row(
+                                                                                                      children: [
+                                                                                                        Column(
+                                                                                                          children: [
+                                                                                                            Container(
+                                                                                                              child: Column(
+                                                                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                children: [
+                                                                                                                  Row(
+                                                                                                                    children: [
+                                                                                                                      Column(
+                                                                                                                        children: <Widget>[
+                                                                                                                          Container(
+                                                                                                                            // color: Colors.blue,
+                                                                                                                            // width:,
+
+                                                                                                                            height: inputheightisi,
+                                                                                                                            child: Text(
+                                                                                                                              "KOTA",
+                                                                                                                              style: TextStyle(
+                                                                                                                                fontSize: fontSize * 0.02,
+                                                                                                                                fontWeight: FontWeight.bold,
+                                                                                                                              ),
+                                                                                                                            ),
+                                                                                                                          )
+                                                                                                                        ],
+                                                                                                                      )
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                  Row(
+                                                                                                                    children: [
+                                                                                                                      Padding(
+                                                                                                                        padding: const EdgeInsets.all(.0),
+                                                                                                                        child: Column(
+                                                                                                                          children: [
+                                                                                                                            FutureBuilder<List<Kota>>(
+                                                                                                                              future: futureKota,
+                                                                                                                              builder: (context, snapshot) {
+                                                                                                                                // if (snapshot.connectionState == ConnectionState.waiting) {
+                                                                                                                                //   return CircularProgressIndicator();
+                                                                                                                                // } else
+                                                                                                                                if (snapshot.hasError) {
+                                                                                                                                  return Text('Error: ${snapshot.error}', style: TextStyle(fontSize: fontSize * 0.04));
+                                                                                                                                } else if (snapshot.hasData) {
+                                                                                                                                  return Container(
+                                                                                                                                    width: inWidth * 0.9,
+                                                                                                                                    height: inheight * 0.07,
+                                                                                                                                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 0),
+                                                                                                                                    decoration: BoxDecoration(
+                                                                                                                                      borderRadius: BorderRadius.circular(8.0),
+                                                                                                                                      border: Border.all(color: Colors.grey),
+                                                                                                                                    ),
+                                                                                                                                    child: DropdownButton<Kota>(
+                                                                                                                                      hint: Text(
+                                                                                                                                        'Pilih Kota',
+                                                                                                                                        style: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                                                        maxLines: 3,
+                                                                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                                                                        softWrap: true,
+                                                                                                                                      ),
+                                                                                                                                      value: selectedKota,
+                                                                                                                                      onChanged: (Kota? newValue) {
+                                                                                                                                        setState(() {
+                                                                                                                                          selectedKota = newValue;
+                                                                                                                                        });
+                                                                                                                                      },
+                                                                                                                                      items: snapshot.data!.map((Kota kota) {
+                                                                                                                                        return DropdownMenuItem<Kota>(
+                                                                                                                                          value: kota,
+                                                                                                                                          child: ConstrainedBox(
+                                                                                                                                            constraints: BoxConstraints(maxWidth: inWidth * 0.8), // Sesuaikan lebar maksimum sesuai kebutuhan
+                                                                                                                                            child: Text(
+                                                                                                                                              kota.name,
+                                                                                                                                              style: TextStyle(
+                                                                                                                                                fontSize: fontSize * 0.02,
+                                                                                                                                                // fontWeight: FontWeight.bold,
+                                                                                                                                              ),
+                                                                                                                                              maxLines: 3,
+                                                                                                                                              overflow: TextOverflow.ellipsis,
+                                                                                                                                              // softWrap: true,
+                                                                                                                                            ),
+                                                                                                                                          ),
+                                                                                                                                        );
+                                                                                                                                      }).toList(),
+                                                                                                                                    ),
+                                                                                                                                  );
+                                                                                                                                } else {
+                                                                                                                                  return Container(
+                                                                                                                                    width: inWidth * 0.9,
+                                                                                                                                    height: inheight * 0.07,
+                                                                                                                                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                                                                                                                    decoration: BoxDecoration(
+                                                                                                                                      borderRadius: BorderRadius.circular(8.0),
+                                                                                                                                      border: Border.all(color: Colors.grey),
+                                                                                                                                    ),
+                                                                                                                                    child: Column(
+                                                                                                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                                                                                                      children: [
+                                                                                                                                        Row(
+                                                                                                                                          children: [
+                                                                                                                                            Text(
+                                                                                                                                              'Silakan pilih provinsi',
+                                                                                                                                              style: TextStyle(
+                                                                                                                                                color: const Color.fromARGB(255, 58, 56, 56),
+                                                                                                                                                fontSize: fontSize * 0.02,
+                                                                                                                                                fontWeight: FontWeight.w500,
+                                                                                                                                              ),
+                                                                                                                                            ),
+                                                                                                                                          ],
+                                                                                                                                        ),
+                                                                                                                                      ],
+                                                                                                                                    ),
+                                                                                                                                  );
+                                                                                                                                }
+                                                                                                                              },
+                                                                                                                            ),
+                                                                                                                          ],
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                ],
+                                                                                                              ),
+                                                                                                            ),
+                                                                                                          ],
+                                                                                                        ),
+                                                                                                      ],
+                                                                                                    ),
+                                                                                                    SizedBox(height: 10),
+                                                                                                    Row(
+                                                                                                      children: [
+                                                                                                        Column(
+                                                                                                          children: [
+                                                                                                            Row(
+                                                                                                              children: [
+                                                                                                                Container(
+                                                                                                                  child: Column(
+                                                                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                    children: [
+                                                                                                                      Row(
+                                                                                                                        children: [
+                                                                                                                          Column(
+                                                                                                                            children: <Widget>[
+                                                                                                                              Container(
+                                                                                                                                // color: Colors.blue,
+                                                                                                                                // width:,
+
+                                                                                                                                height: inputheightisi,
+                                                                                                                                child: Text(
+                                                                                                                                  "ALAMAT ",
+                                                                                                                                  style: TextStyle(
+                                                                                                                                    fontSize: fontSize * 0.02,
+                                                                                                                                    fontWeight: FontWeight.bold,
+                                                                                                                                  ),
+                                                                                                                                ),
+                                                                                                                              )
+                                                                                                                            ],
+                                                                                                                          )
+                                                                                                                        ],
+                                                                                                                      ),
+                                                                                                                      Row(
+                                                                                                                        children: [
+                                                                                                                          Container(
+                                                                                                                            width: inWidth * 0.9,
+                                                                                                                            height: inheight * 0.08,
+                                                                                                                            decoration: BoxDecoration(
+                                                                                                                              border: Border.all(
+                                                                                                                                color: Colors.grey,
+                                                                                                                                width: 1,
+                                                                                                                                style: BorderStyle.solid,
+                                                                                                                              ),
+                                                                                                                              borderRadius: BorderRadius.circular(10),
+                                                                                                                            ),
+                                                                                                                            padding: EdgeInsets.only(left: 10, top: 10),
+                                                                                                                            child: TextFormField(
+                                                                                                                                controller: _alamatController,
+                                                                                                                                style: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                                                textAlignVertical: TextAlignVertical.center,
+                                                                                                                                // autofocus: true,
+                                                                                                                                enableInteractiveSelection: true,
+                                                                                                                                maxLines: 3,
+                                                                                                                                textAlign: TextAlign.start,
+                                                                                                                                decoration: InputDecoration(
+                                                                                                                                  border: InputBorder.none,
+                                                                                                                                  hintStyle: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                                                  hintText: ('Info Alamat Lengkap  '),
+                                                                                                                                  errorStyle: TextStyle(fontSize: fontSize * 0.02 // Ubah sesuai kebutuhan
+                                                                                                                                      ),
+                                                                                                                                ),
+                                                                                                                                validator: _address),
+                                                                                                                          ),
+                                                                                                                        ],
+                                                                                                                      )
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                )
+                                                                                                              ],
+                                                                                                            )
+                                                                                                          ],
                                                                                                         )
                                                                                                       ],
-                                                                                                    )
-                                                                                                  ],
-                                                                                                ),
-                                                                                                Row(
-                                                                                                  children: [
-                                                                                                    Container(
-                                                                                                      width: 150,
-                                                                                                      height: 50,
-                                                                                                      child: TextFormField(
-                                                                                                        controller: _dateController,
-                                                                                                        readOnly: true,
-                                                                                                        onTap: _selectDate, // Memilih tanggal menggunakan date picker
-                                                                                                        decoration: InputDecoration(
-                                                                                                          labelText: 'Tanggal',
-                                                                                                          border: OutlineInputBorder(),
-                                                                                                          suffixIcon: Icon(Icons.calendar_today),
-                                                                                                        ),
-                                                                                                        keyboardType: TextInputType.datetime,
-                                                                                                        validator: _validateDate,
-                                                                                                      ),
-                                                                                                    )
-                                                                                                  ],
-                                                                                                ),
-                                                                                              ],
-                                                                                            ),
-                                                                                          )
-                                                                                        ],
-                                                                                      ),
-                                                                                    ],
-                                                                                  ),
-                                                                                  SizedBox(
-                                                                                    width: 10,
-                                                                                  ),
-                                                                                  Column(
-                                                                                    children: [
-                                                                                      Row(
-                                                                                        children: [
-                                                                                          Container(
-                                                                                            child: Column(
-                                                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                              children: [
-                                                                                                Row(
-                                                                                                  mainAxisAlignment: MainAxisAlignment.start,
-                                                                                                  children: [
-                                                                                                    Column(
-                                                                                                      children: <Widget>[
+                                                                                                    ),
+                                                                                                    SizedBox(
+                                                                                                      height: 10,
+                                                                                                    ),
+                                                                                                    Row(
+                                                                                                      mainAxisAlignment: MainAxisAlignment.start,
+                                                                                                      children: [
                                                                                                         Container(
                                                                                                           // color: Colors.blue,
-                                                                                                          // width:,
-
-                                                                                                          height: 30,
-                                                                                                          child: Text(
-                                                                                                            "JAM",
-                                                                                                            style: TextStyle(
-                                                                                                              fontSize: 15,
-                                                                                                              fontWeight: FontWeight.bold,
-                                                                                                            ),
+                                                                                                          width: inWidth * 0.9,
+                                                                                                          height: inheight * 0.16,
+                                                                                                          child: Row(
+                                                                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                            children: [
+                                                                                                              Column(
+                                                                                                                children: [
+                                                                                                                  Row(
+                                                                                                                    children: [
+                                                                                                                      Container(
+                                                                                                                        child: Column(
+                                                                                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                          children: [
+                                                                                                                            Row(
+                                                                                                                              mainAxisAlignment: MainAxisAlignment.start,
+                                                                                                                              children: [
+                                                                                                                                Column(
+                                                                                                                                  children: <Widget>[
+                                                                                                                                    Container(
+                                                                                                                                      // color: Colors.blue,
+                                                                                                                                      width: MediaQuery.of(context).size.width * 0.3,
+                                                                                                                                      height: inputheightisi,
+                                                                                                                                      child: Text(
+                                                                                                                                        "JADWAL",
+                                                                                                                                        style: TextStyle(
+                                                                                                                                          fontSize: fontSize * 0.02,
+                                                                                                                                          fontWeight: FontWeight.bold,
+                                                                                                                                        ),
+                                                                                                                                      ),
+                                                                                                                                    )
+                                                                                                                                  ],
+                                                                                                                                )
+                                                                                                                              ],
+                                                                                                                            ),
+                                                                                                                            Row(
+                                                                                                                              children: [
+                                                                                                                                Container(
+                                                                                                                                  // color: Colors.blue,
+                                                                                                                                  width: inWidth * 0.4,
+                                                                                                                                  height: inheight * 0.09,
+                                                                                                                                  child: TextFormField(
+                                                                                                                                    style: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                                                    controller: _dateController,
+                                                                                                                                    readOnly: true,
+                                                                                                                                    onTap: _selectDate, // Memilih tanggal menggunakan date picker
+                                                                                                                                    decoration: InputDecoration(
+                                                                                                                                      labelStyle: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                                                      labelText: 'Tanggal',
+                                                                                                                                      border: OutlineInputBorder(),
+                                                                                                                                      errorStyle: TextStyle(fontSize: fontSize * 0.02 // Ubah sesuai kebutuhan
+                                                                                                                                          ),
+                                                                                                                                      suffixIcon: Icon(
+                                                                                                                                        Icons.calendar_today,
+                                                                                                                                        size: inWidth * 0.06,
+                                                                                                                                      ),
+                                                                                                                                    ),
+                                                                                                                                    keyboardType: TextInputType.datetime,
+                                                                                                                                    validator: _validateDate,
+                                                                                                                                  ),
+                                                                                                                                )
+                                                                                                                              ],
+                                                                                                                            ),
+                                                                                                                          ],
+                                                                                                                        ),
+                                                                                                                      )
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                ],
+                                                                                                              ),
+                                                                                                              // SizedBox(
+                                                                                                              //   width: 5,
+                                                                                                              // ),
+                                                                                                              Column(
+                                                                                                                children: [
+                                                                                                                  Row(
+                                                                                                                    children: [
+                                                                                                                      Container(
+                                                                                                                        child: Column(
+                                                                                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                          children: [
+                                                                                                                            Row(
+                                                                                                                              mainAxisAlignment: MainAxisAlignment.start,
+                                                                                                                              children: [
+                                                                                                                                Column(
+                                                                                                                                  children: <Widget>[
+                                                                                                                                    Container(
+                                                                                                                                      // color: Colors.blue,
+                                                                                                                                      width: MediaQuery.of(context).size.width * 0.3,
+                                                                                                                                      height: inputheightisi,
+                                                                                                                                      child: Text(
+                                                                                                                                        "JAM",
+                                                                                                                                        style: TextStyle(
+                                                                                                                                          fontSize: fontSize * 0.02,
+                                                                                                                                          fontWeight: FontWeight.bold,
+                                                                                                                                        ),
+                                                                                                                                      ),
+                                                                                                                                    )
+                                                                                                                                  ],
+                                                                                                                                )
+                                                                                                                              ],
+                                                                                                                            ),
+                                                                                                                            Row(
+                                                                                                                              children: [
+                                                                                                                                Container(
+                                                                                                                                  // color: Colors.blue,
+                                                                                                                                  width: MediaQuery.of(context).size.width * 0.4,
+                                                                                                                                  height: inheight * 0.09,
+                                                                                                                                  child: TextFormField(
+                                                                                                                                    style: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                                                    controller: _timeController,
+                                                                                                                                    readOnly: true,
+                                                                                                                                    onTap: () => _selectTime(context),
+                                                                                                                                    decoration: InputDecoration(
+                                                                                                                                      labelText: 'Jam ',
+                                                                                                                                      labelStyle: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                                                      border: OutlineInputBorder(),
+                                                                                                                                      suffixIcon: Icon(
+                                                                                                                                        Icons.access_time,
+                                                                                                                                        size: inWidth * 0.06,
+                                                                                                                                      ),
+                                                                                                                                      errorStyle: TextStyle(fontSize: fontSize * 0.02 // Ubah sesuai kebutuhan
+                                                                                                                                          ),
+                                                                                                                                    ),
+                                                                                                                                    validator: _validateTime,
+                                                                                                                                  ),
+                                                                                                                                )
+                                                                                                                              ],
+                                                                                                                            ),
+                                                                                                                            Row(
+                                                                                                                              children: [
+                                                                                                                                Column(
+                                                                                                                                  children: [
+                                                                                                                                    Text(
+                                                                                                                                      "* 08:00 - 17:00",
+                                                                                                                                      style: TextStyle(fontSize: fontSize * 0.02, fontWeight: FontWeight.bold, color: Colors.red),
+                                                                                                                                    )
+                                                                                                                                  ],
+                                                                                                                                )
+                                                                                                                              ],
+                                                                                                                            ),
+                                                                                                                          ],
+                                                                                                                        ),
+                                                                                                                      )
+                                                                                                                    ],
+                                                                                                                  )
+                                                                                                                ],
+                                                                                                              )
+                                                                                                            ],
                                                                                                           ),
+                                                                                                        ),
+                                                                                                      ],
+                                                                                                    ),
+                                                                                                    SizedBox(height: 5),
+                                                                                                    Row(
+                                                                                                      children: [
+                                                                                                        Column(
+                                                                                                          children: [
+                                                                                                            Row(
+                                                                                                              children: [
+                                                                                                                Container(
+                                                                                                                  child: Column(
+                                                                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                                    children: [
+                                                                                                                      Row(
+                                                                                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                                                                                        children: [
+                                                                                                                          Column(
+                                                                                                                            children: <Widget>[
+                                                                                                                              Container(
+                                                                                                                                // color: Colors.blue,
+                                                                                                                                // width:,
+
+                                                                                                                                height: inputheightisi,
+                                                                                                                                child: Text(
+                                                                                                                                  "WHATSAPP",
+                                                                                                                                  style: TextStyle(
+                                                                                                                                    fontSize: fontSize * 0.02,
+                                                                                                                                    fontWeight: FontWeight.bold,
+                                                                                                                                  ),
+                                                                                                                                ),
+                                                                                                                              )
+                                                                                                                            ],
+                                                                                                                          )
+                                                                                                                        ],
+                                                                                                                      ),
+                                                                                                                      Row(
+                                                                                                                        children: [
+                                                                                                                          Container(
+                                                                                                                            width: inWidth * 0.9,
+                                                                                                                            height: inheight * 0.07,
+                                                                                                                            decoration: BoxDecoration(
+                                                                                                                              border: Border.all(
+                                                                                                                                color: Colors.grey,
+                                                                                                                                width: 1,
+                                                                                                                                style: BorderStyle.solid,
+                                                                                                                              ),
+                                                                                                                              borderRadius: BorderRadius.circular(10),
+                                                                                                                            ),
+                                                                                                                            padding: EdgeInsets.only(
+                                                                                                                              left: 10,
+                                                                                                                            ),
+                                                                                                                            child: TextFormField(
+                                                                                                                                controller: _waController,
+                                                                                                                                keyboardType: TextInputType.phone,
+                                                                                                                                style: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                                                decoration: InputDecoration(
+                                                                                                                                  hintStyle: TextStyle(fontSize: fontSize * 0.02),
+                                                                                                                                  border: InputBorder.none,
+                                                                                                                                  hintText: 'Nomor Whatsapp',
+                                                                                                                                  errorStyle: TextStyle(fontSize: fontSize * 0.02 // Ubah sesuai kebutuhan
+                                                                                                                                      ),
+                                                                                                                                ),
+                                                                                                                                validator: _whatsapp),
+                                                                                                                          )
+                                                                                                                        ],
+                                                                                                                      )
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                )
+                                                                                                              ],
+                                                                                                            )
+                                                                                                          ],
                                                                                                         )
                                                                                                       ],
-                                                                                                    )
-                                                                                                  ],
-                                                                                                ),
-                                                                                                Row(
-                                                                                                  children: [
-                                                                                                    Container(
-                                                                                                      width: 120,
-                                                                                                      height: 50,
-                                                                                                      child: TextFormField(
-                                                                                                        controller: _timeController,
-                                                                                                        readOnly: true,
-                                                                                                        onTap: _selectTime, // Memilih waktu menggunakan time picker
-                                                                                                        decoration: InputDecoration(
-                                                                                                          labelText: 'Jam ',
-                                                                                                          border: OutlineInputBorder(),
-                                                                                                          suffixIcon: Icon(Icons.access_time),
-                                                                                                        ),
-                                                                                                        keyboardType: TextInputType.datetime,
-                                                                                                        validator: _validateTime,
-                                                                                                      ),
-                                                                                                    )
-                                                                                                  ],
-                                                                                                ),
-                                                                                              ],
-                                                                                            ),
-                                                                                          )
-                                                                                        ],
-                                                                                      )
-                                                                                    ],
-                                                                                  )
-                                                                                ],
-                                                                              ),
-                                                                              SizedBox(height: 20),
-                                                                              Row(
-                                                                                children: [
-                                                                                  Column(
-                                                                                    children: [
-                                                                                      Row(
-                                                                                        children: [
-                                                                                          Container(
-                                                                                            child: Column(
-                                                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                              children: [
-                                                                                                Row(
-                                                                                                  mainAxisAlignment: MainAxisAlignment.start,
-                                                                                                  children: [
+                                                                                                    ),
+                                                                                                    SizedBox(height: 40),
                                                                                                     Column(
-                                                                                                      children: <Widget>[
-                                                                                                        Container(
-                                                                                                          // color: Colors.blue,
-                                                                                                          // width:,
-
-                                                                                                          height: 30,
-                                                                                                          child: Text(
-                                                                                                            "WHATSAPP",
-                                                                                                            style: TextStyle(
-                                                                                                              fontSize: 15,
-                                                                                                              fontWeight: FontWeight.bold,
+                                                                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                                                                      children: [
+                                                                                                        Row(
+                                                                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                                                                          children: [
+                                                                                                            Container(
+                                                                                                              // width: inWidth,
+                                                                                                              // height: inWidth * 0.2,
+                                                                                                              child: Column(
+                                                                                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                                                                                children: [
+                                                                                                                  Row(
+                                                                                                                    children: [
+                                                                                                                      ElevatedButton(
+                                                                                                                        style: ButtonStyle(
+                                                                                                                          fixedSize: WidgetStatePropertyAll(Size(inputWidth, inWidth * 0.09)),
+                                                                                                                          backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF233d63)),
+                                                                                                                        ),
+                                                                                                                        onPressed: _submitForm,
+                                                                                                                        child: Row(
+                                                                                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                                                                                          children: [
+                                                                                                                            Text(
+                                                                                                                              'Submit',
+                                                                                                                              style: TextStyle(fontSize: fontSize * 0.02, color: Colors.white),
+                                                                                                                            ),
+                                                                                                                          ],
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                ],
+                                                                                                              ),
                                                                                                             ),
-                                                                                                          ),
-                                                                                                        )
+                                                                                                          ],
+                                                                                                        ),
                                                                                                       ],
-                                                                                                    )
+                                                                                                    ),
                                                                                                   ],
                                                                                                 ),
-                                                                                                Row(
-                                                                                                  children: [
-                                                                                                    Container(
-                                                                                                      width: inputWidth,
-                                                                                                      height: 50,
-                                                                                                      decoration: BoxDecoration(
-                                                                                                        border: Border.all(
-                                                                                                          color: Colors.grey,
-                                                                                                          width: 1,
-                                                                                                          style: BorderStyle.solid,
-                                                                                                        ),
-                                                                                                        borderRadius: BorderRadius.circular(10),
-                                                                                                      ),
-                                                                                                      padding: EdgeInsets.only(
-                                                                                                        left: 10,
-                                                                                                      ),
-                                                                                                      child: TextFormField(
-                                                                                                        controller: _waController,
-                                                                                                        keyboardType: TextInputType.phone,
-                                                                                                        decoration: const InputDecoration(
-                                                                                                          border: InputBorder.none,
-                                                                                                          hintText: 'Nomor Whatsapp',
-                                                                                                        ),
-                                                                                                        validator: (String? value) {
-                                                                                                          if (value == null || value.isEmpty) {
-                                                                                                            return ' Maukkan Nomor Whatsapp';
-                                                                                                          }
-                                                                                                          return null;
-                                                                                                        },
-                                                                                                      ),
-                                                                                                    )
-                                                                                                  ],
-                                                                                                )
-                                                                                              ],
-                                                                                            ),
-                                                                                          )
-                                                                                        ],
-                                                                                      )
-                                                                                    ],
-                                                                                  )
-                                                                                ],
-                                                                              ),
-                                                                              SizedBox(height: 40),
-                                                                              Column(
-                                                                                crossAxisAlignment: CrossAxisAlignment.end,
-                                                                                children: [
-                                                                                  Row(
-                                                                                    mainAxisAlignment: MainAxisAlignment.end,
-                                                                                    children: [
-                                                                                      Container(
-                                                                                        // width: 100,
-                                                                                        // height: 50,
-                                                                                        child: Column(
-                                                                                          crossAxisAlignment: CrossAxisAlignment.end,
-                                                                                          children: [
-                                                                                            Row(
-                                                                                              children: [
-                                                                                                ElevatedButton(
-                                                                                                  style: ButtonStyle(
-                                                                                                    fixedSize: WidgetStatePropertyAll(Size(inputWidth, 30)),
-                                                                                                    backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF233d63)),
-                                                                                                  ),
-                                                                                                  onPressed: _submitForm,
-                                                                                                  child: Row(
-                                                                                                    mainAxisAlignment: MainAxisAlignment.center,
-                                                                                                    children: [
-                                                                                                      Text(
-                                                                                                        'Submit',
-                                                                                                        style: TextStyle(fontSize: 17, color: Colors.white),
-                                                                                                      ),
-                                                                                                    ],
-                                                                                                  ),
-                                                                                                ),
-                                                                                              ],
+                                                                                              ),
                                                                                             ),
                                                                                           ],
                                                                                         ),
-                                                                                      ),
-                                                                                    ],
+                                                                                      ],
+                                                                                    ),
                                                                                   ),
-                                                                                ],
-                                                                              ),
-                                                                            ],
-                                                                          ),
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                          ],
                                                                         ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                ],
+                                                                      ]),
+                                                                ),
                                                               ),
-                                                            ),
+                                                            ],
                                                           ),
                                                         ],
                                                       ),
                                                     ],
                                                   ),
-                                                ]),
+                                                ),
+                                              );
+                                      }
+                                      ;
+                                      return Center(
+                                        child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 100),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Image.asset(
+                                                'images/assets/No_internet.png',
+                                                width: screenWidth * 0.6,
+                                                height: screenheight * 0.3,
+                                                fit: BoxFit.cover,
+                                              ),
+                                              SizedBox(height: 20),
+                                              Text(
+                                                'Please check your internet connection and try again.',
+                                                style: TextStyle(
+                                                  fontSize: fontSize * 0.03,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              SizedBox(height: 20),
+                                              ElevatedButton.icon(
+                                                onPressed: () async {
+                                                  // Re-check the internet connection and refresh the data
+                                                  bool connection =
+                                                      await InternetConnectionChecker()
+                                                          .hasConnection;
+                                                  if (connection) {
+                                                    setState(() {
+                                                      isConnected = true;
+                                                      _futureItems =
+                                                          fetchItems();
+                                                      futureProvinsi =
+                                                          fetchProvinsi();
+                                                    });
+                                                  } else {
+                                                    setState(() {
+                                                      isConnected = false;
+                                                    });
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      SnackBar(
+                                                          content: Text(
+                                                              'No internet connection available',
+                                                              style: TextStyle(
+                                                                  fontSize:
+                                                                      fontSize *
+                                                                          0.04))),
+                                                    );
+                                                  }
+                                                },
+                                                icon: Icon(Icons.refresh),
+                                                label: Text('Refresh',
+                                                    style: TextStyle(
+                                                        fontSize:
+                                                            fontSize * 0.04)),
+                                                style: ElevatedButton.styleFrom(
+                                                  foregroundColor: Colors.white,
+                                                  backgroundColor:
+                                                      Colors.blue, // Text color
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 20,
+                                                      vertical: 10),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      } else {
-                        // No internet connection
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 100),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  'images/assets/No_internet.png',
-                                  width: 200,
-                                  height: 200,
-                                  fit: BoxFit.cover,
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  'Please check your internet connection and try again.',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(height: 20),
-                                ElevatedButton.icon(
-                                  onPressed: () async {
-                                    // Re-check the internet connection and refresh the data
-                                    bool connection =
-                                        await InternetConnectionChecker()
-                                            .hasConnection;
-                                    if (connection) {
-                                      setState(() {
-                                        isConnected = true;
-                                        _futureItems = fetchItems();
-                                        futureProvinsi = fetchProvinsi();
-                                      });
-                                    } else {
-                                      setState(() {
-                                        isConnected = false;
-                                      });
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                            content: Text(
-                                                'No internet connection available')),
                                       );
-                                    }
-                                  },
-                                  icon: Icon(Icons.refresh),
-                                  label: Text('Refresh'),
-                                  style: ElevatedButton.styleFrom(
-                                    foregroundColor: Colors.white,
-                                    backgroundColor: Colors.blue, // Text color
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 10),
+                                    },
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-                    },
+                              ])),
+                    )
+                  ],
+                ),
+              ))
+            : Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 100),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'images/assets/No_internet.png',
+                        width: screenWidth * 3.0,
+                        height: screenheight * 3.0,
+                        fit: BoxFit.cover,
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Please check your internet connection and try again.',
+                        style: TextStyle(
+                          fontSize: fontSize * 1.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          // Re-check the internet connection and refresh the data
+                          bool connection =
+                              await InternetConnectionChecker().hasConnection;
+                          if (connection) {
+                            setState(() {
+                              isConnected = true;
+                              _futureItems = fetchItems();
+                              futureProvinsi = fetchProvinsi();
+                            });
+                          } else {
+                            setState(() {
+                              isConnected = false;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      'No internet connection available',
+                                      style: TextStyle(
+                                          fontSize: fontSize * 0.04))),
+                            );
+                          }
+                        },
+                        icon: Icon(Icons.refresh),
+                        label: Text('Refresh',
+                            style: TextStyle(fontSize: fontSize * 0.04)),
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.blue, // Text color
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ])),
-    );
+              )
+        // bottomNavigationBar: HomeBottomNavBar(),
+        );
   }
 
   void _showSelectHamaDialog() async {
@@ -2245,8 +2610,14 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
       showDialog(
         context: context,
         builder: (BuildContext context) {
+          double fontSize = MediaQuery.of(context).size.width;
+
           return AlertDialog(
-            title: Text('Select Hama'),
+            title: Text(
+              'Select Hama',
+              style:
+                  TextStyle(fontSize: MediaQuery.of(context).size.width * 0.03),
+            ),
             content: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
                 return SizedBox(
@@ -2259,6 +2630,9 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
                         return CheckboxListTile(
                           title: Text(
                             item.nama_hama,
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.width * 0.03),
                             overflow: TextOverflow.visible,
                             softWrap: true,
                           ),
@@ -2284,20 +2658,28 @@ class _SimulasiHargaWidgetState extends State<SimulasiHargaWidget> {
                 onPressed: () {
                   Navigator.of(context).pop(); // Close the dialog
                 },
-                child: Text('Cancel'),
+                child:
+                    Text('Cancel', style: TextStyle(fontSize: fontSize * 0.04)),
               ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedItemIds = Set.from(initialSelectedIds);
-                    _selectedText = items
-                        .where((item) => _selectedItemIds.contains(item.id))
-                        .map((item) => item.nama_hama)
-                        .join(', ');
-                  });
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-                child: Text('OK'),
+              Container(
+                child: TextButton(
+                  // style: ButtonStyle(
+                  //     backgroundColor: WidgetStatePropertyAll(Colors.amber)),
+                  onPressed: () {
+                    setState(() {
+                      _selectedItemIds = Set.from(initialSelectedIds);
+                      _selectedText = items
+                          .where((item) => _selectedItemIds.contains(item.id))
+                          .map((item) => item.nama_hama)
+                          .join(', ');
+                    });
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: Text('OK',
+                      style: TextStyle(
+                        fontSize: fontSize * 0.04,
+                      )),
+                ),
               ),
             ],
           );

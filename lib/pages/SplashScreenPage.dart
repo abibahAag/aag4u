@@ -1,6 +1,4 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_aag4u/pages/homepage.dart';
 import 'package:flutter_aag4u/widgets/SplashScreen.dart';
 
@@ -9,18 +7,21 @@ class SplashScreenPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     return FutureBuilder(
-      future: Future.delayed(Duration(seconds: 3)),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting){
+        future: Future.delayed(Duration(seconds: 3)),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return SplashScreen();
-        } else {
-    return Scaffold(
-        body: SafeArea(
-          child: homePage(isRegistered: false, isLoggedIn: false)),
-    );
-     }
+          } else {
+            return Scaffold(
+              body: SafeArea(
+                  child: homePage(
+                    isRegistered: false,
+                    isLoggedIn: false,
+                    initialTabIndex: 0,
+                  )),
+            );
+          }
         });
   }
 }

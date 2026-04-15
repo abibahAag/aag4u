@@ -1,11 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
-
-
 
 class DetailBlogWidget extends StatefulWidget {
   final int blogId;
@@ -16,7 +12,7 @@ class DetailBlogWidget extends StatefulWidget {
 }
 
 class _DetailBlogWidgetState extends State<DetailBlogWidget> {
-   Future<Map<String, dynamic>>? futureBlogDetail;
+  Future<Map<String, dynamic>>? futureBlogDetail;
 
   @override
   void initState() {
@@ -24,8 +20,7 @@ class _DetailBlogWidgetState extends State<DetailBlogWidget> {
     futureBlogDetail = fetchBlogDetail();
   }
 
-
-   Future<Map<String, dynamic>> fetchBlogDetail() async {
+  Future<Map<String, dynamic>> fetchBlogDetail() async {
     final response = await http
         .get(Uri.parse('https://app.aag4u.co.id/api/getPost/${widget.blogId}'));
 
@@ -36,8 +31,6 @@ class _DetailBlogWidgetState extends State<DetailBlogWidget> {
     }
   }
 
-
- 
   @override
   Widget build(BuildContext context) {
     return Scaffold(

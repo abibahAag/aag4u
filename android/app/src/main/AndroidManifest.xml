@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-            package="com.flutter.AAG4U">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
             <uses-permission android:name="android.permission.INTERNET"/>
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
@@ -9,7 +8,7 @@
             <uses-permission android:name="android.permission.VIBRATE"/>
             <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
-        android:label="AAG4U"
+        android:label="AAG"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
