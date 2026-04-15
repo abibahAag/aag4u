@@ -305,7 +305,6 @@ import 'package:http/http.dart' as http;
 import 'package:rxdart/rxdart.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -329,7 +328,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
 }
 
-
 class LocalNotifications {
   static final FlutterLocalNotificationsPlugin
       _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -339,9 +337,9 @@ class LocalNotifications {
   static const String _androidChannelId = 'fcm_default_channel';
   static const String _androidChannelName = 'FCM Notifications';
 
-    static bool _hasNavigated = false;
+  static bool _hasNavigated = false;
 
-      static Future<void> navigateFromInitialMessage(String payload) async {
+  static Future<void> navigateFromInitialMessage(String payload) async {
     if (navigatorKey.currentState == null) {
       print('[ERROR] navigatorKey belum siap!');
       return;
@@ -365,7 +363,6 @@ class LocalNotifications {
         print("Reset flag navigasi");
       });
     }
-   
   }
 
   // Initialize local notifications and FCM integration
@@ -405,8 +402,6 @@ class LocalNotifications {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
 
-
-
     // Initialize Firebase Messaging
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -418,7 +413,6 @@ class LocalNotifications {
     //   }
     // });
 
-    
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final title = message.notification?.title ?? message.data['title'] ?? '';
       final body = message.notification?.body ?? message.data['body'] ?? '';
@@ -436,21 +430,21 @@ class LocalNotifications {
         imageUrl: imageUrl,
         clickAction: clickAction,
       );
-    // }
+      // }
     });
 
     // Handle notification when app is terminated
     final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-      // if (initialMessage != null && !hasNavigatedFromNotification) {
-      //   final clickAction = initialMessage.data['click_action'];
-      //   if (clickAction != null) {
-      //     hasNavigatedFromNotification = true;
-      //     _navigateToPage(jsonEncode({'click_action': clickAction}));
-      //   }
-      
-      // }
+    // if (initialMessage != null && !hasNavigatedFromNotification) {
+    //   final clickAction = initialMessage.data['click_action'];
+    //   if (clickAction != null) {
+    //     hasNavigatedFromNotification = true;
+    //     _navigateToPage(jsonEncode({'click_action': clickAction}));
+    //   }
 
-      if (initialMessage != null && !_hasNavigated) {
+    // }
+
+    if (initialMessage != null && !_hasNavigated) {
       final clickAction = initialMessage.data['click_action'];
       if (clickAction != null) {
         _hasNavigated = true;
@@ -462,31 +456,28 @@ class LocalNotifications {
       }
     }
 
-      // Handle notification click when app is in background
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        // if (!hasNavigatedFromNotification){
-        //   final clickAction = message.data['click_action']; // Extract action
-        //   if (clickAction != null) {
-        //     _navigateToPage(jsonEncode({'click_action': clickAction}));
-        //   }
-        // }
+    // Handle notification click when app is in background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      // if (!hasNavigatedFromNotification){
+      //   final clickAction = message.data['click_action']; // Extract action
+      //   if (clickAction != null) {
+      //     _navigateToPage(jsonEncode({'click_action': clickAction}));
+      //   }
+      // }
 
-        if (!_hasNavigated) {
-          final clickAction = message.data['click_action'];
-          if (clickAction != null) {
-            _hasNavigated = true;
-            _navigateToPage(jsonEncode({'click_action': clickAction}));
+      if (!_hasNavigated) {
+        final clickAction = message.data['click_action'];
+        if (clickAction != null) {
+          _hasNavigated = true;
+          _navigateToPage(jsonEncode({'click_action': clickAction}));
 
-            Future.delayed(Duration(seconds: 2), () {
-              _hasNavigated = false;
-            });
-          }
+          Future.delayed(Duration(seconds: 2), () {
+            _hasNavigated = false;
+          });
         }
-      });
-
+      }
+    });
   }
-  
-
 
   // Show in-app notification for foregroundd
   static Future _showFCMNotification({
@@ -540,7 +531,9 @@ class LocalNotifications {
       notificationDetails,
       payload: jsonEncode({'click_action': clickAction}), // Add click_action
     );
-    print('[NOTIF] Payload dikirim: ${jsonEncode({'click_action': clickAction})}');
+    print('[NOTIF] Payload dikirim: ${jsonEncode({
+          'click_action': clickAction
+        })}');
   }
 
   // Public wrapper so top-level background handler can show notifications.
@@ -582,7 +575,6 @@ class LocalNotifications {
 
   // Navigate to the target page based on click_action
   static Future<void> _navigateToPage(String payload) async {
-    
     final data = jsonDecode(payload);
     final clickAction = data['click_action'];
 
@@ -620,13 +612,11 @@ class LocalNotifications {
                 isLoggedIn: false,
                 initialTabIndex: 4,
               ),
-              settings:
-                  RouteSettings(name: '/profilePage'), // beri nama unik
+              settings: RouteSettings(name: '/profilePage'), // beri nama unik
             ),
           );
         }
-
-      } else if (clickAction.startsWith("PromoPage" )) {
+      } else if (clickAction.startsWith("PromoPage")) {
         // navigatorKey.currentState?.pushNamed('/PromoPage', arguments: payload);
         final currentRoute =
             ModalRoute.of(navigatorKey.currentContext!)?.settings.name;
@@ -729,5 +719,4 @@ class LocalNotifications {
   static Future cancel(int id) async {
     await _flutterLocalNotificationsPlugin.cancel(id);
   }
-  
 }

@@ -1111,8 +1111,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       navigatorKey: navigatorKey,
       routes: {
         "/": (context) => SplashScreenPage(),
-        "/homePage": (context) =>
-            homePage(
+        "/homePage": (context) => homePage(
               isRegistered: false,
               isLoggedIn: false,
               initialTabIndex: 0,

@@ -4,7 +4,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_aag4u/Menu_Blog/ArtikelPage.dart';
-import 'package:flutter_aag4u/Menu_Promo/promoPage.dart';
+import 'package:flutter_aag4u/Menu_Promo/DetailPromo.dart';
+import 'package:flutter_aag4u/Menu_Promo/promoPage.dart' as promo;
 import 'package:flutter_aag4u/controller/pushnotificationController.dart';
 import 'package:flutter_aag4u/pages/ActivityPage.dart';
 import 'package:flutter_aag4u/pages/berandaPage.dart';
@@ -136,6 +137,30 @@ class _homePage extends State<homePage> {
     }
   }
 
+  Future<promo.Banner?> getPromoBy(String promoId) async {
+    try {
+      final response =
+          await http.get(Uri.parse('https://app.aag4u.co.id/api/getPromo'));
+
+      if (response.statusCode == 200) {
+        List jsonResponse = json.decode(response.body);
+        List<promo.Banner> promos =
+            jsonResponse.map((data) => promo.Banner.fromJson(data)).toList();
+
+        for (final item in promos) {
+          if (item.id == promoId) {
+            return item;
+          }
+        }
+      } else {
+        print('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error promo: $e');
+    }
+    return null;
+  }
+
   ///  Sampai Sini  API untuk Menampilkan Notifikasi Detail Blog //
 
   // //  to listen to any notification clicked or not
@@ -163,7 +188,6 @@ class _homePage extends State<homePage> {
 
         // Extract the 'click_action' from the parsed payload (if it exists)
         String? clickAction = payloadData['click_action'];
-        // String? blogId = payloadData['blogId'];
         if (clickAction != null) {
           print("Click action: $payload");
 
@@ -176,8 +200,43 @@ class _homePage extends State<homePage> {
             Navigator.pushNamed(context, '/TreatmentPage', arguments: payload);
           } else if (clickAction == "EventPage") {
             Navigator.pushNamed(context, '/EventPage', arguments: payload);
-          } else if (clickAction == "PromoPage") {
-            Navigator.pushNamed(context, '/PromoPage', arguments: payload);
+          } else if (clickAction.startsWith("promoPage/")) {
+            String? promoId;
+            if (clickAction.startsWith("promoPage/")) {
+              final parts = clickAction.split('/');
+              if (parts.length > 1) {
+                promoId = parts[1];
+              }
+            }
+            promoId ??= payloadData['promoId']?.toString();
+            promoId ??= payloadData['promo_id']?.toString();
+            promoId ??= payloadData['id']?.toString();
+            promoId ??= payloadData['topicId']?.toString();
+
+            if (promoId != null && promoId.isNotEmpty) {
+              final promoData = await getPromoBy(promoId);
+              if (promoData != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DetailPromo(
+                      id: promoData.id,
+                      judul: promoData.judul,
+                      deskripsi: promoData.deskripsi,
+                      mulai: promoData.mulai,
+                      akhir: promoData.akhir,
+                      gambar_promo: promoData.gambar_promo,
+                    ),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Promo tidak ditemukan')),
+                );
+              }
+            } else {
+              Navigator.pushNamed(context, '/PromoPage', arguments: payload);
+            }
           } else if (clickAction.startsWith("artikelPage/")) {
             // Ekstrak ID dari clickAction
             final parts = clickAction.split('/');
@@ -220,8 +279,6 @@ class _homePage extends State<homePage> {
         }
       } catch (e) {
         print("Error parsing payload: $payload");
-        // If the payload is not a valid JSON, handle accordingly (e.g., navigate with plain payload)
-        // Navigator.pushNamed(context, '/surveyPage', arguments: payload);
       }
     });
   }
@@ -319,7 +376,7 @@ class _homePage extends State<homePage> {
         login: false,
       ),
       // const Text("promo"),
-      PromoPage(),
+      promo.PromoPage(),
       // const Text("chat"),
       ActivityPage(
         isRegistered: false,
