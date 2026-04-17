@@ -3,12 +3,10 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_aag4u/misc/tile_providers.dart';
 import 'package:flutter_aag4u/pages/pdfView.dart';
 import 'package:flutter_aag4u/pages/profilePage.dart';
-import 'package:flutter_aag4u/plugins/zoombuttons_plugin.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -16,22 +14,13 @@ import 'package:latlong2/latlong.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:path_provider/path_provider.dart';
 
-// class SurveyPage extends StatelessWidget {
-//   const SurveyPage(
-//       {super.key, required bool isRegistered, required bool login});
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       debugShowCheckedModeBanner: false,
-//       home: SurveyPage(),
-//     );
-//   }
-// }
-
 class SurveyPage extends StatefulWidget {
   @override
-  const SurveyPage(
-      {super.key, required bool isRegistered, required bool login});
+  const SurveyPage({
+    super.key,
+    required bool isRegistered,
+    required bool login,
+  });
   _SurveyPageState createState() => _SurveyPageState();
 }
 
@@ -69,35 +58,25 @@ class _SurveyPageState extends State<SurveyPage> {
     setState(() {
       _isLoadingdata = true;
     });
-    // if (mail == "" || mail == null) {
-    //   // Jika sudah login, arahkan ke halaman ProfilePage
-
-    //   Navigator.pushReplacement(
-    //     context,
-    //     MaterialPageRoute(
-    //       builder: (context) => ProfilePage(
-    //         isRegistered: false,
-    //         login: false,
-    //       ),
-    //     ),
-    //   );
-    //   // Tampilkan alert jika belum login
-    // }
     try {
       var box = await Hive.openBox('loginBox');
       var email = box.get('email');
 
-      final requestResponse = await http
-          .get(Uri.parse('https://app.aag4u.co.id/api/getProgres/1/$email'));
+      final requestResponse = await http.get(
+        Uri.parse('https://app.aag4u.co.id/api/getProgres/1/$email'),
+      );
 
-      final surveyResponse = await http
-          .get(Uri.parse('https://app.aag4u.co.id/api/getProgres/2/$email'));
+      final surveyResponse = await http.get(
+        Uri.parse('https://app.aag4u.co.id/api/getProgres/2/$email'),
+      );
 
-      final offerResponse = await http
-          .get(Uri.parse('https://app.aag4u.co.id/api/getProgres/3/$email'));
+      final offerResponse = await http.get(
+        Uri.parse('https://app.aag4u.co.id/api/getProgres/3/$email'),
+      );
 
-      final dealResponse = await http
-          .get(Uri.parse('https://app.aag4u.co.id/api/getProgres/4/$email'));
+      final dealResponse = await http.get(
+        Uri.parse('https://app.aag4u.co.id/api/getProgres/4/$email'),
+      );
       // if (requestResponse == 200) {
       setState(() {
         requestData = json.decode(requestResponse.body);
@@ -148,14 +127,17 @@ class _SurveyPageState extends State<SurveyPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.asset(
-                    'images/assets/No_internet.png', width: screenWidth * 0.5,
+                    'images/assets/No_internet.png',
+                    width: screenWidth * 0.5,
                     // height: screenheight * 0.9,
                   ),
                   SizedBox(height: 20),
                   Text(
                     'No Internet Connection',
                     style: TextStyle(
-                        fontSize: fontSize * 0.04, color: Colors.black54),
+                      fontSize: fontSize * 0.04,
+                      color: Colors.black54,
+                    ),
                   ),
                   // SizedBox(height: 10),
                   // ElevatedButton(
@@ -176,10 +158,7 @@ class _SurveyPageState extends State<SurveyPage> {
 
                 if (_email == null) {
                   // If email is null, show the sign-in page
-                  return ProfilePage(
-                    isRegistered: false,
-                    login: false,
-                  );
+                  return ProfilePage(isRegistered: false, login: false);
                 } else {
                   // If email is not null, show the profile page
                   return DefaultTabController(
@@ -232,9 +211,11 @@ class _SurveyPageState extends State<SurveyPage> {
                                         fit: BoxFit.cover,
                                       ),
                                       SizedBox(height: 16),
-                                      Text('No Internet Connection',
-                                          style: TextStyle(
-                                              fontSize: fontSize * 0.04)),
+                                      Text(
+                                        'No Internet Connection',
+                                        style: TextStyle(
+                                            fontSize: fontSize * 0.04),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -246,73 +227,6 @@ class _SurveyPageState extends State<SurveyPage> {
           }
         },
       ),
-
-      //     ValueListenableBuilder(
-      //   valueListenable:
-      //       loginBox.listenable(), // Listen for changes in the Hive box
-      //   builder: (context, Box box, _) {
-      //     String? _email = box.get('email');
-
-      //     if (_email == null) {
-      //       // If email is null, show the sign-in page
-      //       return ProfilePage(
-      //         isRegistered: false,
-      //         login: false,
-      //       );
-      //     } else {
-      //       // If email is not null, show the profile page
-      //       return DefaultTabController(
-      //         length: 4,
-      //         child: Scaffold(
-      //           appBar: AppBar(
-      //             title: Text('Treatment Progress'),
-      //             centerTitle: true,
-      //             bottom: TabBar(
-      //               tabs: [
-      //                 Tab(text: 'Request'),
-      //                 Tab(text: 'Survey'),
-      //                 Tab(text: 'Offer'),
-      //                 Tab(text: 'Deal'),
-      //               ],
-      //             ),
-      //           ),
-      //           body: _isLoadingdata
-      //               ? Center(
-      //                   child: LoadingAnimationWidget.inkDrop(
-      //                     color: const Color.fromARGB(255, 34, 20, 227),
-      //                     size: 50,
-      //                   ),
-      //                 )
-      //               : hasInternet
-      //                   ? TabBarView(
-      //                       children: [
-      //                         RequestTab(requestData: requestData),
-      //                         SurveyTab(surveyData: surveyData),
-      //                         OfferTab(offerData: offerData),
-      //                         DealTab(dealData: dealData),
-      //                       ],
-      //                     )
-      //                   : Center(
-      //                       child: Column(
-      //                         mainAxisAlignment: MainAxisAlignment.center,
-      //                         children: [
-      //                           Image.asset(
-      //                             'images/assets/No_internet.png',
-      //                             width: 200,
-      //                             height: 200,
-      //                             fit: BoxFit.cover,
-      //                           ),
-      //                           SizedBox(height: 16),
-      //                           Text('No Internet Connection',
-      //                               style: TextStyle(fontSize: 18)),
-      //                         ],
-      //                       ),
-      //                     ),
-      //         ),
-      //       );
-      //     }
-      //   },
-      // )
     );
   }
 }
@@ -371,9 +285,15 @@ class _PdfViewerPageState extends State<PdfView> {
           color: Colors.white, // Warna background opsional
           child: isLoading
               ? Center(child: CircularProgressIndicator())
-              : SfPdfViewer.file(
-                  File(localPath!),
-                  canShowPaginationDialog: true,
+              : PDFView(
+                  filePath: localPath!,
+                  enableSwipe: true,
+                  swipeHorizontal: false,
+                  autoSpacing: true,
+                  pageFling: true,
+                  onPageChanged: (int? page, int? total) {
+                    print('Page $page of $total');
+                  },
                 ),
         ),
       ],
@@ -412,115 +332,24 @@ class _RequestTabState extends State<RequestTab> {
     double fontSize = MediaQuery.of(context).size.width;
 
     return Scaffold(
-        body: ListView.builder(
-      itemCount: widget.requestData.length,
-      itemBuilder: (context, index) {
-        // Assuming `productName` and `purchaseDate` are part of `requestData`
-        // List<dynamic> hama = requestData[index]['survey_hama'];
-        final hama = widget.requestData[index]['survey_hama'] as List<dynamic>;
-        final hamaNames = hama
-            .map((hama) =>
-                (hama as Map<String, dynamic>)['hama']['nama_hama'] ??
-                'No name')
-            .join(', ');
-        final hama_lainnya = widget.requestData[index]['hama_lainnya'];
-        DateTime purchaseDate = DateTime.parse(
-            widget.requestData[index]['jadwal']); // Assuming it's a date string
-        String displayHamaData() {
-          if (hamaNames.isNotEmpty && (hama_lainnya?.isNotEmpty ?? false)) {
-            // Both hamaNames and hama_lainnya have values
-            return '$hamaNames, $hama_lainnya';
-          } else if (hamaNames.isNotEmpty && (hama_lainnya?.isEmpty ?? true)) {
-            // Only hamaNames has a value
-            return hamaNames;
-          } else if (hamaNames.isEmpty && (hama_lainnya?.isNotEmpty ?? false)) {
-            // Only hama_lainnya has a value
-            return hama_lainnya!;
-          }
-          return 'No data available';
-        }
-
-        return Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white, // Warna background box
-              borderRadius: BorderRadius.circular(
-                  12.0), // Border radius untuk melengkungkan sudut
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black
-                      .withOpacity(0.1), // Shadow dengan transparansi
-                  blurRadius: 6.0, // Radius blur shadow
-                  offset: Offset(0, 3), // Posisi shadow
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ListTile(
-                  leading: Icon(Icons.file_copy,
-                      size: iconSize * 0.05, color: Colors.blue),
-                  title: Text(
-                    displayHamaData(),
-                    style: TextStyle(
-                        fontSize: fontSize * 0.04, fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Survey on: ${purchaseDate.day}/${purchaseDate.month}/${purchaseDate.year} - ${widget.requestData[index]['jam']}',
-                        style: TextStyle(
-                            fontSize: fontSize * 0.04, color: Colors.grey),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        '${widget.requestData[index]['provinsi']} - ${widget.requestData[index]['kota']}',
-                        style: TextStyle(
-                            fontSize: fontSize * 0.04, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 10),
-              ],
-            ),
-          ),
-        );
-      },
-    ));
-  }
-}
-
-/// End Code RequestTab ///
-
-class SurveyTab extends StatelessWidget {
-  final List<dynamic> surveyData;
-  SurveyTab({required this.surveyData});
-
-  // final String productName = "Kecoa,Lalat,Semut";
-  // final DateTime purchaseDate = DateTime(2024, 9, 1);
-
-  @override
-  Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenheight = MediaQuery.of(context).size.height;
-    double inWidth = MediaQuery.of(context).size.width;
-    double iconSize = MediaQuery.of(context).size.width;
-    double fontSize = MediaQuery.of(context).size.width;
-    return Scaffold(
       body: ListView.builder(
-        itemCount: surveyData.length,
+        itemCount: widget.requestData.length,
         itemBuilder: (context, index) {
-          final hama = surveyData[index]['survey_hama'] as List<dynamic>;
+          // Assuming `productName` and `purchaseDate` are part of `requestData`
+          // List<dynamic> hama = requestData[index]['survey_hama'];
+          final hama =
+              widget.requestData[index]['survey_hama'] as List<dynamic>;
           final hamaNames = hama
-              .map((hama) =>
-                  (hama as Map<String, dynamic>)['hama']['nama_hama'] ??
-                  'No name')
+              .map(
+                (hama) =>
+                    (hama as Map<String, dynamic>)['hama']['nama_hama'] ??
+                    'No name',
+              )
               .join(', ');
-          final hama_lainnya = surveyData[index]['hama_lainnya'];
+          final hama_lainnya = widget.requestData[index]['hama_lainnya'];
+          DateTime purchaseDate = DateTime.parse(
+            widget.requestData[index]['jadwal'],
+          ); // Assuming it's a date string
           String displayHamaData() {
             if (hamaNames.isNotEmpty && (hama_lainnya?.isNotEmpty ?? false)) {
               // Both hamaNames and hama_lainnya have values
@@ -537,19 +366,21 @@ class SurveyTab extends StatelessWidget {
             return 'No data available';
           }
 
-          DateTime purchaseDate = DateTime.parse(surveyData[index]['jadwal']);
           return Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(10.0),
             child: Container(
-              height: screenWidth * 0.9,
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 255, 255, 255),
-                borderRadius: BorderRadius.circular(12.0),
+                color: Colors.white, // Warna background box
+                borderRadius: BorderRadius.circular(
+                  12.0,
+                ), // Border radius untuk melengkungkan sudut
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 6.0,
-                    offset: Offset(0, 3),
+                    color: Colors.black.withOpacity(
+                      0.1,
+                    ), // Shadow dengan transparansi
+                    blurRadius: 6.0, // Radius blur shadow
+                    offset: Offset(0, 3), // Posisi shadow
                   ),
                 ],
               ),
@@ -557,82 +388,184 @@ class SurveyTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
-                    leading: Icon(Icons.file_copy,
-                        size: iconSize * 0.05, color: Colors.blue),
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Kami akan melakukan survey terkait hama :',
-                          style: TextStyle(fontSize: fontSize * 0.04),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          displayHamaData(),
-                          style: TextStyle(
-                              fontSize: fontSize * 0.04,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    leading: Icon(
+                      Icons.file_copy,
+                      size: iconSize * 0.05,
+                      color: Colors.blue,
+                    ),
+                    title: Text(
+                      displayHamaData(),
+                      style: TextStyle(
+                        fontSize: fontSize * 0.04,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Survey on: ${purchaseDate.day}/${purchaseDate.month}/${purchaseDate.year} - ${surveyData[index]['jam']}',
+                          'Survey on: ${purchaseDate.day}/${purchaseDate.month}/${purchaseDate.year} - ${widget.requestData[index]['jam']}',
                           style: TextStyle(
-                              fontSize: fontSize * 0.04, color: Colors.grey),
+                            fontSize: fontSize * 0.04,
+                            color: Colors.grey,
+                          ),
                         ),
                         SizedBox(height: 4),
                         Text(
-                          '${surveyData[index]['provinsi']} - ${surveyData[index]['kota']}',
+                          '${widget.requestData[index]['provinsi']} - ${widget.requestData[index]['kota']}',
                           style: TextStyle(
-                              fontSize: fontSize * 0.04, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  SizedBox(
-                    height: MediaQuery.of(context).size.width > 800
-                        ? screenWidth * 0.6 // Tablet: Ukuran lebih besar
-                        : screenWidth * 0.4, // HP: Ukuran standar
-                    child: ListView(
-                      scrollDirection: Axis.vertical,
-                      children: [
-                        SizedBox(
-                          width: screenWidth * 0.6,
-                          height: screenheight * 0.4,
-                          child: FlutterMap(
-                            options: MapOptions(
-                              initialCenter: LatLng(
-                                  double.parse(
-                                      surveyData[index]['lat'].toString()),
-                                  double.parse(
-                                      surveyData[index]['lon'].toString())),
-                              initialZoom: 13,
-                            ),
-                            children: [
-                              openStreetMapTileLayer,
-                              const FlutterMapZoomButtons(
-                                minZoom: 4,
-                                maxZoom: 19,
-                                mini: true,
-                                // padding: 20,
-                                alignment: Alignment.topLeft,
-                              ),
-                            ],
+                            fontSize: fontSize * 0.04,
+                            color: Colors.grey,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  SizedBox(height: 10),
                 ],
               ),
             ),
           );
         },
       ),
+    );
+  }
+}
+
+/// End Code SurveyTab ///
+
+class SurveyTab extends StatefulWidget {
+  final List<dynamic> surveyData;
+
+  const SurveyTab({super.key, required this.surveyData});
+
+  @override
+  State<SurveyTab> createState() => _SurveyTab();
+}
+
+class _SurveyTab extends State<SurveyTab> {
+  bool _isLoadingdata = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    /// loading kecil biar smooth
+    Future.delayed(const Duration(seconds: 1), () {
+      setState(() {
+        _isLoadingdata = false;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double fontSize = MediaQuery.of(context).size.width;
+
+    return Scaffold(
+      body: _isLoadingdata
+          ? const Center(child: CircularProgressIndicator())
+          : widget.surveyData.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.inbox, size: 80, color: Colors.grey),
+                      SizedBox(height: 10),
+                      Text(
+                        "Data survey tidak ada",
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: widget.surveyData.length,
+                  itemBuilder: (context, index) {
+                    final item = widget.surveyData[index];
+
+                    /// ✅ AMBIL LAT LON DARI API (INI KUNCI UTAMA)
+                    double lat = double.tryParse(item['lat'] ?? '') ?? -6.2;
+                    double lng = double.tryParse(item['lon'] ?? '') ?? 106.8;
+
+                    /// alamat lengkap (hanya untuk display)
+                    String address =
+                        "${item['alamat']}, ${item['kota']}, ${item['provinsi']}";
+
+                    /// hama
+                    final hama = item['survey_hama'] as List<dynamic>;
+                    final hamaNames = hama
+                        .map(
+                          (h) =>
+                              (h as Map<String, dynamic>)['hama']['nama_hama'],
+                        )
+                        .join(', ');
+
+                    return Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [
+                            BoxShadow(blurRadius: 5, color: Colors.black12),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            /// 🔥 INFO DATA
+                            ListTile(
+                              title: Text(
+                                hamaNames,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: fontSize * 0.04,
+                                ),
+                              ),
+                              subtitle: Text(address),
+                            ),
+
+                            /// 🔥 MAP AKURAT (PAKAI LAT LON)
+                            SizedBox(
+                              height: 200,
+                              child: FlutterMap(
+                                options: MapOptions(
+                                  initialCenter: LatLng(lat, lng),
+                                  initialZoom: 16,
+                                ),
+                                children: [
+                                  TileLayer(
+                                    urlTemplate:
+                                        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                    userAgentPackageName: 'com.aag4u.app',
+                                  ),
+
+                                  /// 🔴 MARKER
+                                  MarkerLayer(
+                                    markers: [
+                                      Marker(
+                                        point: LatLng(lat, lng),
+                                        width: 40,
+                                        height: 40,
+                                        child: const Icon(
+                                          Icons.location_pin,
+                                          color: Colors.red,
+                                          size: 40,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }
@@ -658,9 +591,11 @@ class OfferTab extends StatelessWidget {
         itemBuilder: (context, index) {
           final hama = offerData[index]['survey_hama'] as List<dynamic>;
           final hamaNames = hama
-              .map((hama) =>
-                  (hama as Map<String, dynamic>)['hama']['nama_hama'] ??
-                  'No name')
+              .map(
+                (hama) =>
+                    (hama as Map<String, dynamic>)['hama']['nama_hama'] ??
+                    'No name',
+              )
               .join(', ');
           final hama_lainnya = offerData[index]['hama_lainnya'];
           String displayHamaData() {
@@ -701,8 +636,11 @@ class OfferTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
-                    leading: Icon(Icons.picture_as_pdf,
-                        size: iconSize * 0.07, color: Colors.red),
+                    leading: Icon(
+                      Icons.picture_as_pdf,
+                      size: iconSize * 0.07,
+                      color: Colors.red,
+                    ),
                     title: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -714,8 +652,9 @@ class OfferTab extends StatelessWidget {
                         Text(
                           displayHamaData(),
                           style: TextStyle(
-                              fontSize: fontSize * 0.04,
-                              fontWeight: FontWeight.bold),
+                            fontSize: fontSize * 0.04,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -725,13 +664,17 @@ class OfferTab extends StatelessWidget {
                         Text(
                           'Survey on: ${purchaseDate.day}/${purchaseDate.month}/${purchaseDate.year} - ${offerData[index]['jam']}',
                           style: TextStyle(
-                              fontSize: fontSize * 0.04, color: Colors.grey),
+                            fontSize: fontSize * 0.04,
+                            color: Colors.grey,
+                          ),
                         ),
                         SizedBox(height: 4),
                         Text(
                           '${offerData[index]['provinsi']} - ${offerData[index]['kota']}',
                           style: TextStyle(
-                              fontSize: fontSize * 0.04, color: Colors.grey),
+                            fontSize: fontSize * 0.04,
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),
@@ -786,9 +729,11 @@ class DealTab extends StatelessWidget {
         itemBuilder: (context, index) {
           final hama = dealData[index]['survey_hama'] as List<dynamic>;
           final hamaNames = hama
-              .map((hama) =>
-                  (hama as Map<String, dynamic>)['hama']['nama_hama'] ??
-                  'No name')
+              .map(
+                (hama) =>
+                    (hama as Map<String, dynamic>)['hama']['nama_hama'] ??
+                    'No name',
+              )
               .join(', ');
           final hama_lainnya = dealData[index]['hama_lainnya'];
           String displayHamaData() {
@@ -813,9 +758,11 @@ class DealTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ListTile(
-                  leading: Icon(Icons.check_circle_outline_outlined,
-                      size: iconSize * 0.07,
-                      color: const Color.fromARGB(255, 68, 243, 33)),
+                  leading: Icon(
+                    Icons.check_circle_outline_outlined,
+                    size: iconSize * 0.07,
+                    color: const Color.fromARGB(255, 68, 243, 33),
+                  ),
                   title: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -836,28 +783,36 @@ class DealTab extends StatelessWidget {
                       Text(
                         displayHamaData(),
                         style: TextStyle(
-                            fontSize: fontSize * 0.04, color: Colors.grey),
+                          fontSize: fontSize * 0.04,
+                          color: Colors.grey,
+                        ),
                       ),
                       SizedBox(height: 4),
                       Text(
                         '${dealData[index]['provinsi']} - ${dealData[index]['kota']}',
                         style: TextStyle(
-                            fontSize: fontSize * 0.04, color: Colors.grey),
+                          fontSize: fontSize * 0.04,
+                          color: Colors.grey,
+                        ),
                       ),
                       SizedBox(height: 4),
                       Text(
                         '${dealData[index]['alamat']}',
                         style: TextStyle(
-                            fontSize: fontSize * 0.04, color: Colors.grey),
+                          fontSize: fontSize * 0.04,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 SizedBox(height: 10),
                 ListTile(
-                  leading: Icon(Icons.picture_as_pdf_rounded,
-                      size: iconSize * 0.07,
-                      color: const Color.fromARGB(255, 243, 33, 33)),
+                  leading: Icon(
+                    Icons.picture_as_pdf_rounded,
+                    size: iconSize * 0.07,
+                    color: const Color.fromARGB(255, 243, 33, 33),
+                  ),
                   title: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -885,7 +840,6 @@ class DealTab extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // SizedBox(height: 26),
                       // SizedBox(height: 4),
                       // Text(
                       //   productName,
@@ -894,6 +848,9 @@ class DealTab extends StatelessWidget {
                     ],
                   ),
                 ),
+                // SizedBox(height: 26),
+                // const Divider(
+                //     color: Color.fromARGB(255, 155, 154, 154), thickness: 2),
               ],
             ),
           );
